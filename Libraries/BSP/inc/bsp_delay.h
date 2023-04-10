@@ -1,9 +1,9 @@
 #ifndef __BSP_DELAY_H
 #define __BSP_DELAY_H
 
-#include "stm32f4xx.h"
+#include "stm32f10x.h"
 
-#define CORE_FRECENCY_M  168
+#define CORE_FRECENCY_M  72
 
 void delay_us(uint32_t xus);
 void delay_ms(uint32_t xms);
