@@ -4,79 +4,84 @@
 #include "bsp_serial.h"
 #include "stepMotorlist.h"
 
-stepMotorListType *MotorTaskList;               //µç»úÈÎÎñµ÷¶ÈÁ´±í£¬ÓÉ¶¨Ê±Æ÷»½Æğ
-uint16_t stepMotorTaskFin[16];                  //ÈÎÎñ½áÊøÁ´±íÊÍ·ÅÃûµ¥
-uint16_t stepMotorTaskFinptr = 0;               //ÊÍ·ÅÃûµ¥¼ÆÊıÆ÷
+/**
+ * DECLARE
+*/
+stepMotorListType *MotorTaskList;               //ç”µæœºä»»åŠ¡è°ƒåº¦é“¾è¡¨ï¼Œç”±å®šæ—¶å™¨å”¤èµ·
+uint16_t stepMotorTaskFin[16];                  //ä»»åŠ¡ç»“æŸé“¾è¡¨é‡Šæ”¾åå•
+uint16_t stepMotorTaskFinptr = 0;               //é‡Šæ”¾åå•è®¡æ•°å™¨
 
-USART_DataFrameType stepMotorSerialDataFrame;   //²½½øµç»ú´®¿ÚÊı¾İÖ¡¸ñÊ½
+USART_DataFrameType stepMotorSerialDataFrame;   //æ­¥è¿›ç”µæœºä¸²å£æ•°æ®å¸§æ ¼å¼
 
 /**
- * @brief:  ²½½øµç»úÁ´±íµü´ú»Øµ÷º¯Êı
- * @param:  motor:½ÚµãÖĞ°üº¬µÄµç»ú¶ÔÏó
+ * @brief:  æ­¥è¿›ç”µæœºé“¾è¡¨è¿­ä»£å›è°ƒå‡½æ•°
+ * @param:  motor:èŠ‚ç‚¹ä¸­åŒ…å«çš„ç”µæœºå¯¹è±¡
  * @retval: None
 */
 static void stepMotorTaskCallback(stepMotorClass * motor, uint16_t id)
 {
-    /*Èô¸Ãµç»úµÄÂö³å¸öÊıÎ´·¢ËÍÍê*/
+    /*è‹¥è¯¥ç”µæœºçš„è„‰å†²ä¸ªæ•°æœªå‘é€å®Œ*/
     if(motor->Private.pulse_cnt < motor->Private.pulse)
     {
-        /*µç»ú´¦ÓÚÔËĞĞ×´Ì¬*/
+        /*ç”µæœºå¤„äºè¿è¡ŒçŠ¶æ€*/
         motor->Private.status = run;
 
-        /*Èôµç»úËùĞèÑÓÊ±¼ÆÊıÎ´µ½Ö¸¶¨Ê±³¤*/
+        /*è‹¥ç”µæœºæ‰€éœ€å»¶æ—¶è®¡æ•°æœªåˆ°æŒ‡å®šæ—¶é•¿*/
         if(motor->Private.delay_cnt < motor->Private.nopTime_us)
         {
-            motor->Private.delay_cnt += STEP_MOTOR_TIM_PERIOD;  //¼ÌĞøÑÓÊ±
+            motor->Private.delay_cnt += STEP_MOTOR_TIM_PERIOD;  //ç»§ç»­å»¶æ—¶
         }
         else
         {
-            motor->Private.STP_GPIO_PORT->ODR ^= motor->Public.IO.STP_PIN;  //¶Ô¸ÃÒı½Å½øĞĞÈ¡·´²Ù×÷
-            motor->Private.pulse_cnt ++;                                    //Âö³å·¢ËÍ¸öÊı++
-            motor->Private.delay_cnt = 0;                                   //Çå¿ÕÑÓÊ±£¬½øÈëÏÂÒ»¸öÑÓÊ±ÖÜÆÚ
+            motor->Private.STP_GPIO_PORT->ODR ^= motor->Public.IO.STP_PIN;  //å¯¹è¯¥å¼•è„šè¿›è¡Œå–åæ“ä½œ
+            motor->Private.pulse_cnt ++;                                    //è„‰å†²å‘é€ä¸ªæ•°++
+            motor->Private.delay_cnt = 0;                                   //æ¸…ç©ºå»¶æ—¶ï¼Œè¿›å…¥ä¸‹ä¸€ä¸ªå»¶æ—¶å‘¨æœŸ
         }
     }
     else
     {
-        /*Ö¸¶¨¸öÊıÂö³å·¢ËÍÍê±Ï£¬µç»ú²»ÔÙÔËĞĞ*/
+        /*æŒ‡å®šä¸ªæ•°è„‰å†²å‘é€å®Œæ¯•ï¼Œç”µæœºä¸å†è¿è¡Œ*/
         motor->Private.status = stop;
 
-        /*½«µ±Ç°¶ÔÏóÔÚÁ´±íÖĞµÄidÌîÈëÊÍ·ÅÃûµ¥*/
+        /*å°†å½“å‰å¯¹è±¡åœ¨é“¾è¡¨ä¸­çš„idå¡«å…¥é‡Šæ”¾åå•*/
         stepMotorTaskFin[stepMotorTaskFinptr] = id;
         stepMotorTaskFinptr ++ ;
     }
 }
 
 /**
- * @brief:  ²½½øµç»úÖĞ¶ÏÊÂ¼ş»Øµ÷º¯Êı
+ * @brief:  æ­¥è¿›ç”µæœºä¸­æ–­äº‹ä»¶å›è°ƒå‡½æ•°
 */
 void STEP_MOTOR_TIM_EVENTHANDLER(void)
 {
     uint16_t tmp;
 
-    if(TIM_GetITStatus(TIM2,TIM_IT_Update))
+    /*æŸ¥è¯¢æ˜¯å¦ç”±å®šæ—¶å™¨æº¢å‡ºäº§ç”Ÿä¸­æ–­*/
+    if(TIM_GetITStatus(STEP_MOTOR_TIM,TIM_IT_Update))
     {
-        /*¶Ô¸÷µç»ú½øĞĞµü´ú´¦Àí*/
+        /*å¯¹å„ç”µæœºè¿›è¡Œè¿­ä»£å¤„ç†*/
         stepMotorList_iterator(MotorTaskList,ALL,stepMotorTaskCallback);
 
-        /*ÊÍ·ÅÒÑ¾­Íê³ÉµÄÈÎÎñ*/
+        /*é‡Šæ”¾å·²ç»å®Œæˆçš„ä»»åŠ¡*/
         for(tmp = 0;tmp < stepMotorTaskFinptr; tmp++)
         {
             stepMotorList_POPbyID(MotorTaskList,stepMotorTaskFin[tmp]);
             stepMotorTaskFinptr = 0;
         }
 
-        /*Èç¹ûÈÎÎñÊıÒÑ¾­Îª0*/
+        /*å¦‚æœä»»åŠ¡æ•°å·²ç»ä¸º0*/
         if(stepMotorList_iterator(MotorTaskList,ALL,NULL) == 0)
         {
-            TIM_Cmd(STEP_MOTOR_TIM,DISABLE);                     //¹Ø±Õ¶¨Ê±Æ÷
+            TIM_Cmd(STEP_MOTOR_TIM,DISABLE);                     //å…³é—­å®šæ—¶å™¨
         }
 
-        TIM_ClearITPendingBit(TIM2,TIM_IT_Update);
+        /*æ¸…ä¸­æ–­æ ‡å¿—ä½*/
+        TIM_ClearITPendingBit(STEP_MOTOR_TIM,TIM_IT_Update);
     }
 }
 
 /**
- * @brief:  ²½½øµç»ú´®¿ÚÖĞ¶Ï»Øµ÷º¯Êı
+ * @brief:  æ­¥è¿›ç”µæœºä¸²å£ä¸­æ–­å›è°ƒå‡½æ•°
 */
 void STEP_MOTOR_TTYSX_BUS_IRQ_REGISTER(void)
 {
@@ -84,13 +89,13 @@ void STEP_MOTOR_TTYSX_BUS_IRQ_REGISTER(void)
     {
         if(stepMotorSerialDataFrame.FrameBit.FrameCNT < SERIAL_MAXDATA_SIZE)
         stepMotorSerialDataFrame.RX_BUF[stepMotorSerialDataFrame.FrameBit.FrameCNT ++] = USART_ReceiveData(STEP_MOTOR_TTYSX_BUS);
-        /*Í¨¹ı¶ÔUSART_DRµÄ¶Á²Ù×÷¿ÉÒÔ½«USART_IT_RXNEÇå0*/
+        /*é€šè¿‡å¯¹USART_DRçš„è¯»æ“ä½œå¯ä»¥å°†USART_IT_RXNEæ¸…0*/
     }
     if(USART_GetITStatus(STEP_MOTOR_TTYSX_BUS,USART_IT_IDLE) == SET )
     {
-        stepMotorSerialDataFrame.FrameBit.FrameFinishFlag = 1;		//´ú±í×ÜÏß½øÈë¿ÕÏĞ×´Ì¬£¬Êı¾İ½ÓÊÕÍê±Ï
+        stepMotorSerialDataFrame.FrameBit.FrameFinishFlag = 1;		//ä»£è¡¨æ€»çº¿è¿›å…¥ç©ºé—²çŠ¶æ€ï¼Œæ•°æ®æ¥æ”¶å®Œæ¯•
 
-        USART_ReceiveData(STEP_MOTOR_TTYSX_BUS);				    //ÓÉÈí¼şĞòÁĞÇå³ıÖĞ¶Ï±êÖ¾Î»(ÏÈ¶ÁUSART_SR£¬È»ºó¶ÁUSART_DR)
+        USART_ReceiveData(STEP_MOTOR_TTYSX_BUS);				    //ç”±è½¯ä»¶åºåˆ—æ¸…é™¤ä¸­æ–­æ ‡å¿—ä½(å…ˆè¯»USART_SRï¼Œç„¶åè¯»USART_DR)
         SYS_DEBUG("%s\n",stepMotorSerialDataFrame.RX_BUF);
     }
 }

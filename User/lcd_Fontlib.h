@@ -20,14 +20,14 @@ extern "C"{
 
 /*为了内存效益的最大化，对不需要字库的裁剪是有所必要的*/
 /*0-代表关闭该字体		1代表开启该字体*/
-#define LCD_FONTLIB_USE_ASCII_12		0
+#define LCD_FONTLIB_USE_ASCII_12		1
 #define LCD_FONTLIB_USE_ASCII_16		0
-#define LCD_FONTLIB_USE_ASCII_24		1
+#define LCD_FONTLIB_USE_ASCII_24		0
 #define LCD_FONTLIB_USE_ASCII_32		0
 
-#define LCD_FONTLIB_USE_CHINNESE_12		0
+#define LCD_FONTLIB_USE_CHINNESE_12		1
 #define LCD_FONTLIB_USE_CHINNESE_16		0
-#define LCD_FONTLIB_USE_CHINNESE_24		1
+#define LCD_FONTLIB_USE_CHINNESE_24		0
 #define LCD_FONTLIB_USE_CHINNESE_32		0
 
 #endif

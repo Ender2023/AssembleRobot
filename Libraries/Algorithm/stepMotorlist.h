@@ -5,14 +5,14 @@
 
 #define ALL 65535    
 
-/*²½½øµç»úµ¥Ïò±í*/
+/*æ­¥è¿›ç”µæœºå•å‘è¡¨*/
 typedef struct node
 {
-    stepMotorClass * pStepMotor;            //Ëù¹ÒÔØµÄµç»ú¶ÔÏóÖ¸Õë
-    struct node * next;                     //Ö¸ÏòÏÂÒ»¸ö½ÚµãËùÔÚµØÖ·
+    stepMotorClass * pStepMotor;            //æ‰€æŒ‚è½½çš„ç”µæœºå¯¹è±¡æŒ‡é’ˆ
+    struct node * next;                     //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹æ‰€åœ¨åœ°å€
 }stepMotorListType;
 
-typedef void (*callbackfunc) (stepMotorClass*,uint16_t); //»Øµ÷Ö¸ÕëÉùÃ÷
+typedef void (*callbackfunc) (stepMotorClass*,uint16_t); //å›è°ƒæŒ‡é’ˆå£°æ˜
 
 stepMotorListType* stepMotorList_Init(void);
 int stepMotorList_TailPush(stepMotorListType* pList,stepMotorClass* pNewMotor);

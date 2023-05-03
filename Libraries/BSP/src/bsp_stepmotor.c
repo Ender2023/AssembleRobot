@@ -3,10 +3,14 @@
 #include "bsp_stepmotor.h"
 #include "stepMotorlist.h"
 #include "bsp_serial.h"
+#include "bsp_delay.h"
 
 #define GET_ACTUAL_FREQUENCY()          ( motor->Public.param.freq_max - motor->Public.param.freq_min ) * \
                                         ( motor->Public.param.speed / 100 )
 
+/**
+ * DECLARE
+*/
 static void StepMotorTimerInit(void);
 static bool stepTimerInit = false;               //步进电机定时器首轮初始化标志位
 static uint8_t stepMotor_ttySxInitflag = 0x00;   //步进电机串口首轮初始化标志位
@@ -29,12 +33,15 @@ extern uint16_t stepMotorTaskFinptr;
  * @breif:  步进电机初始化
  * @param:  步进电机对象
  * @retval: None
+ * @note:   COM端在无光耦的情况下不能作为IO输出，否则会随电机的负载烧毁MCU!!!
 */
 void StepMotor_Init(stepMotorClass * motor,stepMotorInitTypeDef * stepMotorParam)
 {
     GPIO_InitTypeDef  GPIO_InitStruct;
 
-    if(stepMotorParam->CTRL_MODE == HARD_CTRL)
+    motor->Public.CTRL_MODE = stepMotorParam->CTRL_MODE;
+
+    if(motor->Public.CTRL_MODE == HARD_CTRL)
     {
         /*如果未初始化过定时器，则初始化定时器*/
         if(!stepTimerInit)
@@ -46,6 +53,7 @@ void StepMotor_Init(stepMotorClass * motor,stepMotorInitTypeDef * stepMotorParam
         /*配置时钟*/
         switch(stepMotorParam->IO.COM_PORT)
         {
+            case MotorIOX: break;
             case MotorIOA: RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA,ENABLE);motor->Private.COM_GPIO_PORT = GPIOA;break;
             case MotorIOB: RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB,ENABLE);motor->Private.COM_GPIO_PORT = GPIOB;break;
             case MotorIOC: RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC,ENABLE);motor->Private.COM_GPIO_PORT = GPIOC;break;
@@ -93,9 +101,12 @@ void StepMotor_Init(stepMotorClass * motor,stepMotorInitTypeDef * stepMotorParam
         GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
 
         /*公共引脚初始化*/
-        motor->Public.IO.COM_PIN = stepMotorParam->IO.COM_PIN;
-        GPIO_InitStruct.GPIO_Pin = motor->Public.IO.COM_PIN;
-        GPIO_Init(motor->Private.COM_GPIO_PORT,&GPIO_InitStruct);
+        if(motor->Public.IO.COM_PORT != MotorIOX)
+        {
+            motor->Public.IO.COM_PIN = stepMotorParam->IO.COM_PIN;
+            GPIO_InitStruct.GPIO_Pin = motor->Public.IO.COM_PIN;
+            GPIO_Init(motor->Private.COM_GPIO_PORT,&GPIO_InitStruct);
+        }
 
         /*方向引脚初始化*/
         motor->Public.IO.DIR_PIN = stepMotorParam->IO.DIR_PIN;
@@ -112,6 +123,7 @@ void StepMotor_Init(stepMotorClass * motor,stepMotorInitTypeDef * stepMotorParam
         GPIO_InitStruct.GPIO_Pin = motor->Public.IO.STP_PIN;
         GPIO_Init(motor->Private.STP_GPIO_PORT,&GPIO_InitStruct);
 
+        motor->Public.IO.ENA_Level = stepMotorParam->IO.ENA_Level;
         /*确定默认状态为停止*/
         StepMotor_Cmd(motor,DISABLE);
 
@@ -121,7 +133,7 @@ void StepMotor_Init(stepMotorClass * motor,stepMotorInitTypeDef * stepMotorParam
         motor->Public.IO.ENA_PORT = stepMotorParam->IO.ENA_PORT;
         motor->Public.IO.STP_PORT = stepMotorParam->IO.STP_PORT;
     }
-    else if(stepMotorParam->CTRL_MODE == SOFT_CTRL)
+    else if(motor->Public.CTRL_MODE == SOFT_CTRL)
     {
         USART_InitTypeDef   USART_InitStruct;
         NVIC_InitTypeDef    NVIC_InitStruct;
@@ -330,16 +342,38 @@ int StepMotor_Cmd(stepMotorClass * motor, FunctionalState NewState)
 {
     if(motor->Public.CTRL_MODE == HARD_CTRL)
     {
-        if(NewState)
+        if(NewState == ENABLE)
         {
-            motor->Private.ENA_GPIO_PORT->BSRR = motor->Public.IO.ENA_PIN;
-            motor->Private.COM_GPIO_PORT->BSRR = motor->Public.IO.COM_PIN;
+            if(motor->Public.IO.ENA_Level == HIGH_LEVEL)
+            {
+                motor->Private.ENA_GPIO_PORT->BSRR = motor->Public.IO.ENA_PIN;
+            }
+            else
+            {
+                motor->Private.ENA_GPIO_PORT->BRR = motor->Public.IO.ENA_PIN;
+            }
+            
+            /*若不存在COM端,则不对COM端操作*/
+            if(motor->Private.COM_GPIO_PORT != MotorIOX)
+            {motor->Private.COM_GPIO_PORT->BSRR = motor->Public.IO.COM_PIN;}
+
             motor->Private.status = stop;
         }
         else
         {
-            motor->Private.ENA_GPIO_PORT->BRR = motor->Public.IO.ENA_PIN;
-            motor->Private.COM_GPIO_PORT->BSRR = motor->Public.IO.COM_PIN;
+            if(motor->Public.IO.ENA_Level == HIGH_LEVEL)
+            {
+                motor->Private.ENA_GPIO_PORT->BRR = motor->Public.IO.ENA_PIN;
+            }
+            else
+            {
+                motor->Private.ENA_GPIO_PORT->BSRR = motor->Public.IO.ENA_PIN;
+            }
+            
+            /*若不存在COM端,则不对COM端操作*/
+            if(motor->Private.COM_GPIO_PORT != MotorIOX)
+            {motor->Private.COM_GPIO_PORT->BSRR = motor->Public.IO.COM_PIN;}
+            
             motor->Private.status = disable;
         }
 
@@ -403,7 +437,7 @@ int StepMotor_Brake(stepMotorClass * motor)
  * @param:  xStep                   前进步数
  * @retval: 0:正常退出              -1:引用了错误的控制模式
 */
-int stepMotor_StepFoward(stepMotorClass * motor, uint16_t xStep)
+int stepMotor_StepFoward(stepMotorClass * motor, uint32_t xStep)
 {
     if(motor->Public.CTRL_MODE == HARD_CTRL)
     {
@@ -436,6 +470,7 @@ int stepMotor_AngleFoward(stepMotorClass * motor,float angle)
 {
     if(motor->Public.CTRL_MODE == HARD_CTRL)
     {
+        /*如果任务正在运行，则不能被打断*/
         if(motor->Private.status == stop)
         {
             motor->Private.Hz = GET_ACTUAL_FREQUENCY();
@@ -519,14 +554,15 @@ int stepMotor_SpeedChange(stepMotorClass * motor,float newSpeed)
 */
 void stepMotorStepFoward(stepMotorClass * motor, uint16_t xStep)
 {
-    uint16_t ctr;
+    uint32_t ctr,pulse;
 
     /*根据速度占比得到实际频率*/
     uint32_t Hz = GET_ACTUAL_FREQUENCY();
     /*根据实际频率换算延时时间*/
     uint32_t nop_time = (500000/Hz);
-
-    for(ctr = 0; ctr < (xStep * motor->Public.param.division * 2);ctr ++)
+    /*换算需要发送的脉冲数*/
+    pulse = xStep * motor->Public.param.division * 2;
+    for(ctr = 0; ctr < pulse;ctr ++)
     {
         /*对步进引脚电平进行xStep个步距角的取反*/
         motor->Private.STP_GPIO_PORT->ODR ^= motor->Public.IO.STP_PIN;
@@ -552,6 +588,7 @@ int stepMotor_DivisionChange(stepMotorClass * motor,uint8_t newDivision)
         buf[2] = newDivision;
 
         serial_SendHexArray(motor->Private.ttySx,buf,sizeof(buf));
+        delay_ms(5);
     }
     else
     {
@@ -598,6 +635,7 @@ int stepMotor_SpeedExecute(stepMotorClass * motor,stepMotorDir newDir,float newS
         buf[4] = acceleration;
 
         serial_SendHexArray(motor->Private.ttySx,buf,sizeof(buf));
+        delay_ms(5);
 
         /*更新电机状态*/
         motor->Public.param.dir = newDir;
@@ -663,6 +701,7 @@ uint8_t acceleration, uint32_t pulse)
         buf[7] = ( pulse );
 
         serial_SendHexArray(motor->Private.ttySx,buf,sizeof(buf));
+        delay_ms(5);
 
         /*更新电机状态*/
         motor->Public.param.dir = newDir;
@@ -709,4 +748,12 @@ int stepMotor_AngleExecute(stepMotorClass * motor, stepMotorDir newDir, float ne
     }
 
     return 0;
+}
+
+/**
+ * @brief:  步进电机执行调度
+*/
+__inline void steoMotor_TaskExcute(void)
+{
+    STEP_MOTOR_TIM->CR1 |= TIM_CR1_CEN;
 }

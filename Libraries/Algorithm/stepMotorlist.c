@@ -7,13 +7,13 @@
 #define DEBUG           DEBUG_OFF 
 
 /**
- * @brief:  ²½½øµç»úÁ´±í³õÊ¼»¯
- * @retval: ³õÊ¼»¯ºóµÃµ½µÄÁ´±íÍ·½áµãÖ¸Õë
- * @note:   ²ÉÓÃĞéÄâ±íÍ·
+ * @brief:  æ­¥è¿›ç”µæœºé“¾è¡¨åˆå§‹åŒ–
+ * @retval: åˆå§‹åŒ–åå¾—åˆ°çš„é“¾è¡¨å¤´ç»“ç‚¹æŒ‡é’ˆ
+ * @note:   é‡‡ç”¨è™šæ‹Ÿè¡¨å¤´
 */
 stepMotorListType* stepMotorList_Init(void)
 {
-    stepMotorListType* head = (stepMotorListType*) malloc(sizeof(stepMotorListType));   //·ÖÅä¿Õ¼äÓÃ×÷±íÍ·
+    stepMotorListType* head = (stepMotorListType*) malloc(sizeof(stepMotorListType));   //åˆ†é…ç©ºé—´ç”¨ä½œè¡¨å¤´
     head->next = NULL;
     head->pStepMotor = NULL;
 
@@ -21,14 +21,14 @@ stepMotorListType* stepMotorList_Init(void)
 }
 
 /**
- * @brief:  [·½·¨]²½½øµç»úÁ´±íÎ²²å
- * @param:  pList           Á´±íÍ·½ÚµãµØÖ·
- * @param:  pNewMotor       ²½½øµç»ú¶ÔÏóµØÖ·
- * @retval: ´íÎóĞÅÏ¢        0:Õı³£ÍË³ö,-3:±íÊ¾²»´æÔÚµÄÁ´±í²Ù×÷¶ÔÏóNULL
+ * @brief:  [æ–¹æ³•]æ­¥è¿›ç”µæœºé“¾è¡¨å°¾æ’
+ * @param:  pList           é“¾è¡¨å¤´èŠ‚ç‚¹åœ°å€
+ * @param:  pNewMotor       æ­¥è¿›ç”µæœºå¯¹è±¡åœ°å€
+ * @retval: é”™è¯¯ä¿¡æ¯        0:æ­£å¸¸é€€å‡º,-3:è¡¨ç¤ºä¸å­˜åœ¨çš„é“¾è¡¨æ“ä½œå¯¹è±¡NULL
 */
 int stepMotorList_TailPush(stepMotorListType* pList,stepMotorClass* pNewMotor)
 {
-    /*¼ì²éÊÇ·ñÔÚ²Ù×÷²»´æÔÚµÄÁ´±í¶ÔÏó*/
+    /*æ£€æŸ¥æ˜¯å¦åœ¨æ“ä½œä¸å­˜åœ¨çš„é“¾è¡¨å¯¹è±¡*/
     if (!pList) { return -3; }
 
     while (pList->next != NULL)
@@ -45,30 +45,30 @@ int stepMotorList_TailPush(stepMotorListType* pList,stepMotorClass* pNewMotor)
 }
 
 /**
- * @brief:  [·½·¨]²½½øµç»úÁ´±í°´IDÉ¾³ı
- * @param:  pList           Á´±íÍ·½ÚµãµØÖ·
- * @param:  id              ÒªÉ¾³ıµÄÁ´±í½Úµãid 
- * @retval: ´íÎóĞÅÏ¢        0:Õı³£ÍË³ö,-1:Á´±íÎª¿Õ,-2½ÚµãÏÂ±ê²»´æÔÚ,-3:±íÊ¾²»´æÔÚµÄÁ´±í²Ù×÷¶ÔÏóNULL
+ * @brief:  [æ–¹æ³•]æ­¥è¿›ç”µæœºé“¾è¡¨æŒ‰IDåˆ é™¤
+ * @param:  pList           é“¾è¡¨å¤´èŠ‚ç‚¹åœ°å€
+ * @param:  id              è¦åˆ é™¤çš„é“¾è¡¨èŠ‚ç‚¹id 
+ * @retval: é”™è¯¯ä¿¡æ¯        0:æ­£å¸¸é€€å‡º,-1:é“¾è¡¨ä¸ºç©º,-2èŠ‚ç‚¹ä¸‹æ ‡ä¸å­˜åœ¨,-3:è¡¨ç¤ºä¸å­˜åœ¨çš„é“¾è¡¨æ“ä½œå¯¹è±¡NULL
 */
 int stepMotorList_POPbyID(stepMotorListType* pList, uint16_t id)
 {
     uint16_t id_ctr = 0;
     stepMotorListType* tmp = NULL;
 
-    /*¼ì²éÊÇ·ñÔÚ²Ù×÷²»´æÔÚµÄÁ´±í¶ÔÏó*/
+    /*æ£€æŸ¥æ˜¯å¦åœ¨æ“ä½œä¸å­˜åœ¨çš„é“¾è¡¨å¯¹è±¡*/
     if (!pList) { return -3; }
 
     tmp = pList->next;
 
-    /*¼ì²éµÚ0½ÚµãÊÇ·ñÎª¿Õ*/
+    /*æ£€æŸ¥ç¬¬0èŠ‚ç‚¹æ˜¯å¦ä¸ºç©º*/
     if (tmp == NULL)
     {
-        return -1;  //Á´±íÎª¿Õ£¬²»º¬ÔªËØ
+        return -1;  //é“¾è¡¨ä¸ºç©ºï¼Œä¸å«å…ƒç´ 
     }
 
     while (id_ctr < id)
     {
-        /*Èç¹ûÁ´±íÎ´Çî¾¡£¬Ôò¼ÌĞøÑ°ÕÒ*/
+        /*å¦‚æœé“¾è¡¨æœªç©·å°½ï¼Œåˆ™ç»§ç»­å¯»æ‰¾*/
         if (tmp->next != NULL)
         {
             pList = pList->next;
@@ -77,47 +77,47 @@ int stepMotorList_POPbyID(stepMotorListType* pList, uint16_t id)
         }
         else
         {
-            /*·ñÔòËùÒª²éÑ¯µÄ±êºÅÔÚÁ´±íÖĞ²»´æÔÚ*/
+            /*å¦åˆ™æ‰€è¦æŸ¥è¯¢çš„æ ‡å·åœ¨é“¾è¡¨ä¸­ä¸å­˜åœ¨*/
             return -2;
         }
     }
 
-    /*Ìø¹ıÒªÉ¾³ıµÄ½Úµã,Ö¸ÏòÏÂÒ»½Úµã*/
+    /*è·³è¿‡è¦åˆ é™¤çš„èŠ‚ç‚¹,æŒ‡å‘ä¸‹ä¸€èŠ‚ç‚¹*/
     pList->next = tmp->next;
     free(tmp);
 
 #if DEBUG == DEBUG_ON
-    printf("É¾³ıµÚ%d½Úµã\n",id);
+    printf("åˆ é™¤ç¬¬%dèŠ‚ç‚¹\n",id);
 #endif
 
     return 0;
 }
 
 /**
- * @brief:  [·½·¨]²½½øµç»úÁ´±í°´ĞÅÏ¢É¾³ı
- * @param:  pList           Á´±íÍ·½ÚµãµØÖ·
- * @param:  pMotor          ÒªÉ¾³ıµÄÁ´±í½ÚµãÖĞµÄĞÅÏ¢
- * @retval: ´íÎóĞÅÏ¢        0:Õı³£ÍË³ö,-1:Á´±íÎª¿Õ,-2½ÚµãÏÂ±ê²»´æÔÚ,-3:±íÊ¾²»´æÔÚµÄÁ´±í²Ù×÷¶ÔÏóNULL
+ * @brief:  [æ–¹æ³•]æ­¥è¿›ç”µæœºé“¾è¡¨æŒ‰ä¿¡æ¯åˆ é™¤
+ * @param:  pList           é“¾è¡¨å¤´èŠ‚ç‚¹åœ°å€
+ * @param:  pMotor          è¦åˆ é™¤çš„é“¾è¡¨èŠ‚ç‚¹ä¸­çš„ä¿¡æ¯
+ * @retval: é”™è¯¯ä¿¡æ¯        0:æ­£å¸¸é€€å‡º,-1:é“¾è¡¨ä¸ºç©º,-2èŠ‚ç‚¹ä¸‹æ ‡ä¸å­˜åœ¨,-3:è¡¨ç¤ºä¸å­˜åœ¨çš„é“¾è¡¨æ“ä½œå¯¹è±¡NULL
 */
 int stepMotorList_POPbyInfo(stepMotorListType* pList, stepMotorClass* pMotor)
 {
     uint16_t id_ctr = 0;
     stepMotorListType* tmp = NULL;
 
-    /*¼ì²éÊÇ·ñÔÚ²Ù×÷²»´æÔÚµÄÁ´±í¶ÔÏó*/
+    /*æ£€æŸ¥æ˜¯å¦åœ¨æ“ä½œä¸å­˜åœ¨çš„é“¾è¡¨å¯¹è±¡*/
     if (!pList) { return -3; }
 
     tmp = pList->next;
 
-    /*¼ì²éµÚ0½ÚµãÊÇ·ñÎª¿Õ*/
+    /*æ£€æŸ¥ç¬¬0èŠ‚ç‚¹æ˜¯å¦ä¸ºç©º*/
     if (tmp == NULL)
     {
-        return -1;  //Á´±íÎª¿Õ£¬²»º¬ÔªËØ
+        return -1;  //é“¾è¡¨ä¸ºç©ºï¼Œä¸å«å…ƒç´ 
     }
 
     while (tmp->pStepMotor != pMotor)
     {
-        /*Èç¹ûÁ´±íÎ´Çî¾¡£¬Ôò¼ÌĞøÑ°ÕÒ*/
+        /*å¦‚æœé“¾è¡¨æœªç©·å°½ï¼Œåˆ™ç»§ç»­å¯»æ‰¾*/
         if (tmp->next != NULL)
         {
             pList = pList->next;
@@ -126,114 +126,114 @@ int stepMotorList_POPbyInfo(stepMotorListType* pList, stepMotorClass* pMotor)
         }
         else
         {
-            /*·ñÔòËùÒª²éÑ¯µÄ±êºÅÔÚÁ´±íÖĞ²»´æÔÚ*/
+            /*å¦åˆ™æ‰€è¦æŸ¥è¯¢çš„æ ‡å·åœ¨é“¾è¡¨ä¸­ä¸å­˜åœ¨*/
             return -2;
         }
     }
 
-    /*Ìø¹ıÒªÉ¾³ıµÄ½Úµã,Ö¸ÏòÏÂÒ»½Úµã*/
+    /*è·³è¿‡è¦åˆ é™¤çš„èŠ‚ç‚¹,æŒ‡å‘ä¸‹ä¸€èŠ‚ç‚¹*/
     pList->next = tmp->next;
     free(tmp);
 
 #if DEBUG == DEBUG_ON
-    printf("²éÕÒµ½%#xÎ»ÓÚµÚ%d½Úµã²¢É¾³ı\n", pMotor,id_ctr);
+    printf("æŸ¥æ‰¾åˆ°%#xä½äºç¬¬%dèŠ‚ç‚¹å¹¶åˆ é™¤\n", pMotor,id_ctr);
 #endif
 
     return 0;
 }
 
 /**
- * @brief:  [·½·¨]²½½øµç»úÁ´±í±éÀú
- * @param:  pList           Á´±íÍ·½ÚµãµØÖ·
- * @param:  id              ²éÑ¯µ½µÄÄ©Î²ÏÂ±ê
- * @retval: ´íÎóĞÅÏ¢         0~32767:Õı³£ÍË³ö,²¢·µ»ØÁ´±íÖĞµÄ½Úµã¸öÊı
- *                          -1:Á´±íÎª¿Õ,-3:±íÊ¾²»´æÔÚµÄÁ´±í²Ù×÷¶ÔÏóNULL
- * @note:   ¹ØÓÚiterator¼¸ÖÖÓÃ·¨
- *          retval = stepMotorList_iterator(list,ALL,NULL); ¿ÉÓÃÓÚ²éÑ¯±íÖĞ½Úµã¸öÊı£¬½Úµã¸öÊı´æ´¢ÓÚretvalÖĞ
- *          stepMotorList_iterator(list,ALL,pfunc);         ¿ÉÓÃÓÚµü´úÁ´±íÖĞÈ«Ìå½Úµã£¬»Øµ÷·½·¨ÓÉpfuncÌá¹©
- *          stepMotorList_iterator(list,id,pfunc);          ¿ÉÓÃÓÚµü´úÁ´±íÖĞ0~id¸ö½Úµã£¬»Øµ÷·½·¨ÓÉpfuncÌá¹©
+ * @brief:  [æ–¹æ³•]æ­¥è¿›ç”µæœºé“¾è¡¨éå†
+ * @param:  pList           é“¾è¡¨å¤´èŠ‚ç‚¹åœ°å€
+ * @param:  id              æŸ¥è¯¢åˆ°çš„æœ«å°¾ä¸‹æ ‡
+ * @retval: é”™è¯¯ä¿¡æ¯         0~32767:æ­£å¸¸é€€å‡º,å¹¶è¿”å›é“¾è¡¨ä¸­çš„èŠ‚ç‚¹ä¸ªæ•°
+ *                          -1:é“¾è¡¨ä¸ºç©º,-3:è¡¨ç¤ºä¸å­˜åœ¨çš„é“¾è¡¨æ“ä½œå¯¹è±¡NULL
+ * @note:   å…³äºiteratorå‡ ç§ç”¨æ³•
+ *          retval = stepMotorList_iterator(list,ALL,NULL); å¯ç”¨äºæŸ¥è¯¢è¡¨ä¸­èŠ‚ç‚¹ä¸ªæ•°ï¼ŒèŠ‚ç‚¹ä¸ªæ•°å­˜å‚¨äºretvalä¸­
+ *          stepMotorList_iterator(list,ALL,pfunc);         å¯ç”¨äºè¿­ä»£é“¾è¡¨ä¸­å…¨ä½“èŠ‚ç‚¹ï¼Œå›è°ƒæ–¹æ³•ç”±pfuncæä¾›
+ *          stepMotorList_iterator(list,id,pfunc);          å¯ç”¨äºè¿­ä»£é“¾è¡¨ä¸­0~idä¸ªèŠ‚ç‚¹ï¼Œå›è°ƒæ–¹æ³•ç”±pfuncæä¾›
 */
 int stepMotorList_iterator(stepMotorListType* pList, uint16_t id, callbackfunc pfunc)
 {
     uint16_t id_ctr = 0;
 
-    /*¼ì²éÊÇ·ñÔÚ²Ù×÷²»´æÔÚµÄÁ´±í¶ÔÏó*/
+    /*æ£€æŸ¥æ˜¯å¦åœ¨æ“ä½œä¸å­˜åœ¨çš„é“¾è¡¨å¯¹è±¡*/
     if (!pList) { return -3; }
 
 #if DEBUG == DEBUG_ON
-    printf("±íÍ·:µØÖ·:%#x,ĞÅÏ¢:%#x,ÏÂÒ»½Úµã%#x\n", pList, pList->pStepMotor, pList->next);
+    printf("è¡¨å¤´:åœ°å€:%#x,ä¿¡æ¯:%#x,ä¸‹ä¸€èŠ‚ç‚¹%#x\n", pList, pList->pStepMotor, pList->next);
 #endif
 
-    /*¼ì²éµÚ0½ÚµãÊÇ·ñÎª¿Õ*/
+    /*æ£€æŸ¥ç¬¬0èŠ‚ç‚¹æ˜¯å¦ä¸ºç©º*/
     if (pList->next == NULL)
     { 
-       return -1;                   //Á´±íÎª¿Õ£¬²»º¬ÔªËØ
+       return -1;                   //é“¾è¡¨ä¸ºç©ºï¼Œä¸å«å…ƒç´ 
     }
 
-    /*½øÈëµÚ0½Úµã¿ªÊ¼±éÀú*/
+    /*è¿›å…¥ç¬¬0èŠ‚ç‚¹å¼€å§‹éå†*/
     pList = pList->next;
     while ( id_ctr < id )
     {
 
-        /*¼ìÑé»Øµ÷º¯ÊıÊÇ·ñÎªNULL*/
+        /*æ£€éªŒå›è°ƒå‡½æ•°æ˜¯å¦ä¸ºNULL*/
         if(pfunc != NULL)
         {
-            pfunc(pList->pStepMotor, id_ctr);   //½«½Úµã¶ÔÏóËÍ»Øµ÷º¯Êı½øĞĞµü´ú
+            pfunc(pList->pStepMotor, id_ctr);   //å°†èŠ‚ç‚¹å¯¹è±¡é€å›è°ƒå‡½æ•°è¿›è¡Œè¿­ä»£
         }
         
 
 #if DEBUG == DEBUG_ON
-        printf("µÚ%d½Úµã,µØÖ·:%#x,ĞÅÏ¢:%#x,ÏÂÒ»½Úµã%#x\n",id_ctr,pList,pList->pStepMotor,pList->next);
+        printf("ç¬¬%dèŠ‚ç‚¹,åœ°å€:%#x,ä¿¡æ¯:%#x,ä¸‹ä¸€èŠ‚ç‚¹%#x\n",id_ctr,pList,pList->pStepMotor,pList->next);
 #endif        
 
         pList = pList->next;
 
-        /*¼ì²é½øÈëµÄÏÂÒ»½ÚµãÊÇ·ñÎª¿Õ*/
+        /*æ£€æŸ¥è¿›å…¥çš„ä¸‹ä¸€èŠ‚ç‚¹æ˜¯å¦ä¸ºç©º*/
         if (pList == NULL) 
         { 
-           return id_ctr + 1;       //ÏÂÒ»½ÚµãÎª¿Õ£¬·µ»ØÁ´±íÖĞµÄ½Úµã¸öÊıÎªid_ctr(ÏÂ±ê) + 1
+           return id_ctr + 1;       //ä¸‹ä¸€èŠ‚ç‚¹ä¸ºç©ºï¼Œè¿”å›é“¾è¡¨ä¸­çš„èŠ‚ç‚¹ä¸ªæ•°ä¸ºid_ctr(ä¸‹æ ‡) + 1
         }
         id_ctr ++;
     }
 
 #if DEBUG == DEBUG_ON
-        printf("µÚ%d½Úµã,µØÖ·:%#x,ĞÅÏ¢:%#x,ÏÂÒ»½Úµã%#x\n",id_ctr,pList,pList->pStepMotor,pList->next);
+        printf("ç¬¬%dèŠ‚ç‚¹,åœ°å€:%#x,ä¿¡æ¯:%#x,ä¸‹ä¸€èŠ‚ç‚¹%#x\n",id_ctr,pList,pList->pStepMotor,pList->next);
 #endif   
 
     return id_ctr;
 }
 
 /**
- * @brief:  [·½·¨]²½½øµç»úÁ´±íÒÀÕÕ´æ´¢ĞÅÏ¢²éÕÒid
- * @param:  pList           Á´±íÍ·½ÚµãµØÖ·
- * @param:  pMotor          ´ı²éÕÒµÄÄÚÈİ
- * @retval: ´íÎóĞÅÏ¢        -1:Á´±íÎª¿Õ,-2:²éÎŞ´ËÔªËØ,-3:±íÊ¾²»´æÔÚµÄÁ´±í²Ù×÷¶ÔÏóNULL,
-                            0~32767:´ı²éÕÒÔªËØËùÔÚÁ´±íÖĞµÄÏÂ±ê
+ * @brief:  [æ–¹æ³•]æ­¥è¿›ç”µæœºé“¾è¡¨ä¾ç…§å­˜å‚¨ä¿¡æ¯æŸ¥æ‰¾id
+ * @param:  pList           é“¾è¡¨å¤´èŠ‚ç‚¹åœ°å€
+ * @param:  pMotor          å¾…æŸ¥æ‰¾çš„å†…å®¹
+ * @retval: é”™è¯¯ä¿¡æ¯        -1:é“¾è¡¨ä¸ºç©º,-2:æŸ¥æ— æ­¤å…ƒç´ ,-3:è¡¨ç¤ºä¸å­˜åœ¨çš„é“¾è¡¨æ“ä½œå¯¹è±¡NULL,
+                            0~32767:å¾…æŸ¥æ‰¾å…ƒç´ æ‰€åœ¨é“¾è¡¨ä¸­çš„ä¸‹æ ‡
 */
 int stepMotorList_getbyID(stepMotorListType* pList, stepMotorClass* pMotor)
 {
     uint16_t id_ctr = 0;
 
-    /*¼ì²éÊÇ·ñÔÚ²Ù×÷²»´æÔÚµÄÁ´±í¶ÔÏó*/
+    /*æ£€æŸ¥æ˜¯å¦åœ¨æ“ä½œä¸å­˜åœ¨çš„é“¾è¡¨å¯¹è±¡*/
     if (!pList) { return -3; }
 
-    /*¼ì²éµÚ0½ÚµãÊÇ·ñÎª¿Õ*/
+    /*æ£€æŸ¥ç¬¬0èŠ‚ç‚¹æ˜¯å¦ä¸ºç©º*/
     if (pList->next == NULL)
     {
-        return -1;           //Á´±íÎª¿Õ£¬²»º¬ÔªËØ
+        return -1;           //é“¾è¡¨ä¸ºç©ºï¼Œä¸å«å…ƒç´ 
     }
 
-    /*´ÓµÚ0½Úµã¿ªÊ¼²éÕÒ*/
+    /*ä»ç¬¬0èŠ‚ç‚¹å¼€å§‹æŸ¥æ‰¾*/
     pList = pList->next;
-    /*Èôµ±Ç°½ÚµãÖĞ´æ´¢µÄĞÅÏ¢Óë´ı²éÕÒµÄĞÅÏ¢²»Æ¥Åä*/
+    /*è‹¥å½“å‰èŠ‚ç‚¹ä¸­å­˜å‚¨çš„ä¿¡æ¯ä¸å¾…æŸ¥æ‰¾çš„ä¿¡æ¯ä¸åŒ¹é…*/
     while (pList->pStepMotor != pMotor)
     {
         pList = pList->next;
         
-        /*¼ì²é½øÈëµÄÏÂÒ»½ÚµãÊÇ·ñÎª¿Õ*/
+        /*æ£€æŸ¥è¿›å…¥çš„ä¸‹ä¸€èŠ‚ç‚¹æ˜¯å¦ä¸ºç©º*/
         if (pList == NULL)
         {
-            return -2;       //ÏÂÒ»½ÚµãÎª¿Õ£¬ÔòÒª²éÕÒµÄÏÂ±ê²»´æÔÚ
+            return -2;       //ä¸‹ä¸€èŠ‚ç‚¹ä¸ºç©ºï¼Œåˆ™è¦æŸ¥æ‰¾çš„ä¸‹æ ‡ä¸å­˜åœ¨
         }
         id_ctr ++;
     }
@@ -242,35 +242,35 @@ int stepMotorList_getbyID(stepMotorListType* pList, stepMotorClass* pMotor)
 }
 
 /**
- * @brief:  [·½·¨]²½½øµç»úÁ´±íÒÀÕÕid²éÑ¯´æ´¢ĞÅÏ¢
- * @param:  pList           Á´±íÍ·½ÚµãµØÖ·
- * @param:  id              ´ı²éÕÒµÄ½ÚµãÏÂ±ê
- * @retval: ·µ»Ø±íÖĞ¶ÔÓ¦ÏÂ±ê´æ´¢µÄÄÚÈİ,NULL´ú±í²éÕÒÊ§°Ü        
+ * @brief:  [æ–¹æ³•]æ­¥è¿›ç”µæœºé“¾è¡¨ä¾ç…§idæŸ¥è¯¢å­˜å‚¨ä¿¡æ¯
+ * @param:  pList           é“¾è¡¨å¤´èŠ‚ç‚¹åœ°å€
+ * @param:  id              å¾…æŸ¥æ‰¾çš„èŠ‚ç‚¹ä¸‹æ ‡
+ * @retval: è¿”å›è¡¨ä¸­å¯¹åº”ä¸‹æ ‡å­˜å‚¨çš„å†…å®¹,NULLä»£è¡¨æŸ¥æ‰¾å¤±è´¥        
 */
 stepMotorClass* stepMotor_getbyInfo(stepMotorListType* pList, uint16_t id)
 {
     uint16_t id_ctr = 0;
 
-    /*¼ì²éÊÇ·ñÔÚ²Ù×÷²»´æÔÚµÄÁ´±í¶ÔÏó*/
+    /*æ£€æŸ¥æ˜¯å¦åœ¨æ“ä½œä¸å­˜åœ¨çš„é“¾è¡¨å¯¹è±¡*/
     if (!pList) { return NULL; }
 
-    /*¼ì²éµÚ0½ÚµãÊÇ·ñÎª¿Õ*/
+    /*æ£€æŸ¥ç¬¬0èŠ‚ç‚¹æ˜¯å¦ä¸ºç©º*/
     if (pList->next == NULL)
     {
-        return NULL;           //Á´±íÎª¿Õ£¬²»º¬ÔªËØ
+        return NULL;           //é“¾è¡¨ä¸ºç©ºï¼Œä¸å«å…ƒç´ 
     }
 
-    /*´ÓµÚ0½Úµã¿ªÊ¼²éÕÒ*/
+    /*ä»ç¬¬0èŠ‚ç‚¹å¼€å§‹æŸ¥æ‰¾*/
     pList = pList->next;
-    /*Èôµ±Ç°½ÚµãµÄÏÂ±ê²»ÊÇËùÆÚÍûµÄ*/
+    /*è‹¥å½“å‰èŠ‚ç‚¹çš„ä¸‹æ ‡ä¸æ˜¯æ‰€æœŸæœ›çš„*/
     while ( id_ctr < id )
     {
         pList = pList->next;
 
-        /*¼ì²é½øÈëµÄÏÂÒ»½ÚµãÊÇ·ñÎª¿Õ*/
+        /*æ£€æŸ¥è¿›å…¥çš„ä¸‹ä¸€èŠ‚ç‚¹æ˜¯å¦ä¸ºç©º*/
         if (pList == NULL)
         {
-            return NULL;       //ÏÂÒ»½ÚµãÎª¿Õ£¬ÔòÒª²éÕÒµÄÏÂ±ê²»´æÔÚ
+            return NULL;       //ä¸‹ä¸€èŠ‚ç‚¹ä¸ºç©ºï¼Œåˆ™è¦æŸ¥æ‰¾çš„ä¸‹æ ‡ä¸å­˜åœ¨
         }
         id_ctr++;
     }
@@ -279,20 +279,20 @@ stepMotorClass* stepMotor_getbyInfo(stepMotorListType* pList, uint16_t id)
 }
 
 /**
- * @brief:  [·½·¨]²½½øµç»úÁ´±íÎö¹¹
- * @param:  pList           Á´±íÍ·½ÚµãµØÖ·
- * @retval: ´íÎóĞÅÏ¢        0:Õı³£,-3:±íÊ¾²»´æÔÚµÄÁ´±í²Ù×÷¶ÔÏóNULL
+ * @brief:  [æ–¹æ³•]æ­¥è¿›ç”µæœºé“¾è¡¨ææ„
+ * @param:  pList           é“¾è¡¨å¤´èŠ‚ç‚¹åœ°å€
+ * @retval: é”™è¯¯ä¿¡æ¯        0:æ­£å¸¸,-3:è¡¨ç¤ºä¸å­˜åœ¨çš„é“¾è¡¨æ“ä½œå¯¹è±¡NULL
 */
 int stepMotorList_DeInit(stepMotorListType** pList)
 {
     stepMotorListType* tmp = NULL;
 
-    /*¼ì²éÊÇ·ñÔÚ²Ù×÷²»´æÔÚµÄÁ´±í¶ÔÏó*/
+    /*æ£€æŸ¥æ˜¯å¦åœ¨æ“ä½œä¸å­˜åœ¨çš„é“¾è¡¨å¯¹è±¡*/
     if (!(*pList)) { return -1; }
 
     tmp = (*pList)->next;
 
-    /*Èô±í±¾ÉíÎª¿Õ£¬ÔòÊÍ·ÅĞéÄâ±íÍ·*/
+    /*è‹¥è¡¨æœ¬èº«ä¸ºç©ºï¼Œåˆ™é‡Šæ”¾è™šæ‹Ÿè¡¨å¤´*/
     if(!tmp)
     {
         free((*pList));
@@ -301,12 +301,12 @@ int stepMotorList_DeInit(stepMotorListType** pList)
         return 0;
     }
 
-    /*²é¿´ÏÂÒ»½ÚµãµÄÏÂÒ»½ÚµãÊÇ·ñµ½´ïÄ©Î²*/
+    /*æŸ¥çœ‹ä¸‹ä¸€èŠ‚ç‚¹çš„ä¸‹ä¸€èŠ‚ç‚¹æ˜¯å¦åˆ°è¾¾æœ«å°¾*/
     while (tmp->next != NULL)
     {
-        free((*pList));                //ÊÍ·Åµ±Ç°½Úµã
-        (*pList) = tmp;                //½øÈëÏÂÒ»½Úµã
-        tmp = (*pList)->next;          //ĞÂµÄÏÂÒ»½Úµã
+        free((*pList));                //é‡Šæ”¾å½“å‰èŠ‚ç‚¹
+        (*pList) = tmp;                //è¿›å…¥ä¸‹ä¸€èŠ‚ç‚¹
+        tmp = (*pList)->next;          //æ–°çš„ä¸‹ä¸€èŠ‚ç‚¹
     }
 
     free((*pList));

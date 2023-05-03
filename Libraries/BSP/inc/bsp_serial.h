@@ -10,7 +10,7 @@
 #define TTYS_DEBUG_RCC              RCC_APB1Periph_UART5
 #define TTYS_DEBUG_BUADRATE         115200
 
-/*´®¿ÚÊı¾İÖ¡¸ñÊ½¶¨Òå*/
+/*ä¸²å£æ•°æ®å¸§æ ¼å¼å®šä¹‰*/
 typedef struct USART_DataFrame
 {
 	char RX_BUF[SERIAL_MAXDATA_SIZE];
@@ -21,8 +21,8 @@ typedef struct USART_DataFrame
 
 		struct
 		{
-			volatile uint16_t FrameCNT 			:15;		//¼ÇÂ¼ÒÑ½ÓÊÕÊı¾İÖ¡ÊıÁ¿
-			volatile uint16_t FrameFinishFlag  	:1;			//¼ÇÂ¼Êı¾İÖ¡µÄÖÕÖ¹Î»
+			volatile uint16_t FrameCNT 			:15;		//è®°å½•å·²æ¥æ”¶æ•°æ®å¸§æ•°é‡
+			volatile uint16_t FrameFinishFlag  	:1;			//è®°å½•æ•°æ®å¸§çš„ç»ˆæ­¢ä½
 		}FrameBit;
 
 	};

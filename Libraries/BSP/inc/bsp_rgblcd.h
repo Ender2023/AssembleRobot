@@ -1,6 +1,6 @@
 /************************************************************
 *@file:		dev_rgblcd.h
-*@brief:	Òº¾§Çı¶¯Í·ÎÄ¼ş
+*@brief:	æ¶²æ™¶é©±åŠ¨å¤´æ–‡ä»¶
 *@author:	Pan ZhiKang
 *@date:		2022-10-14
 ************************************************************/
@@ -8,9 +8,6 @@
 #ifndef __BSP_RGBLCD_H__
 #define __BSP_RGBLCD_H__
 
-#include <stdbool.h>
-#include <stdarg.h>
-#include <stdio.h>
 #include "system.h"
 
 #ifdef __cplusplus
@@ -18,7 +15,7 @@ extern "C" {
 #endif
 
 /************************************************************
-*					Ìõ¼ş±àÒëÇ°Ìá(²»ÒªĞŞ¸Ä)
+*					æ¡ä»¶ç¼–è¯‘å‰æ(ä¸è¦ä¿®æ”¹)
 ************************************************************/
 #define LCD_SOFT_SPI_CTRL		0
 #define LCD_HARD_SPI_CTRL		1
@@ -31,18 +28,18 @@ extern "C" {
 
 #define LCD_DMA_BUF_MAX			65535
 /************************************************************
-*				¶¨ÒåLCDÆÁÄ»µÄ³¤¿íÏñËØÓò
+*				å®šä¹‰LCDå±å¹•çš„é•¿å®½åƒç´ åŸŸ
 ************************************************************/
 #define LCD_W					128
 #define LCD_H					128
 
 /************************************************************
-*		¶¨ÒåLCDÆÁÄ»µÄ½Ó¿ÚÒı½ÅÎª(Èí/Ó²)¼ş¿ØÖÆÄ£Ê½
+*		å®šä¹‰LCDå±å¹•çš„æ¥å£å¼•è„šä¸º(è½¯/ç¡¬)ä»¶æ§åˆ¶æ¨¡å¼
 ************************************************************/
 #define LCD_USE_SPI_CTRL_MODE	LCD_HARD_SPI_CTRL
 
 /************************************************************
-*		¶¨ÒåLCDÆÁÄ»×¨ÓÃµÄÑÓÊ±º¯Êı(ÒÆÖ²ÇëĞŞ¸Ä¸Ã´¦)
+*		å®šä¹‰LCDå±å¹•ä¸“ç”¨çš„å»¶æ—¶å‡½æ•°(ç§»æ¤è¯·ä¿®æ”¹è¯¥å¤„)
 ************************************************************/
 #define LCD_Delay_ms(x)			delay_ms(x)
 #define LCD_Delay_us(x)			delay_us(x)
@@ -55,12 +52,12 @@ extern "C" {
 /***********************************************************/
 #if 	LCD_USE_SPI_CTRL_MODE == LCD_SOFT_SPI_CTRL
 /************************************************************
-*		[SOFT]¶¨ÒåLCDÆÁÄ»ÓëMCUµÄ½Ó¿ÚGPIO(ÒÆÖ²ÇëĞŞ¸Ä¸Ã´¦)
+*		[SOFT]å®šä¹‰LCDå±å¹•ä¸MCUçš„æ¥å£GPIO(ç§»æ¤è¯·ä¿®æ”¹è¯¥å¤„)
 ************************************************************/
 #define LCD_SCL_PORT			GPIOB
 #define LCD_SCL_PIN				GPIO_Pin_13
 
-#define LCD_SDA_PORT			GPIOB							//SDA=MOSI(´Ë´¦²»ĞèMISO,¹Ê¼ò»¯ÎªSDA)
+#define LCD_SDA_PORT			GPIOB							//SDA=MOSI(æ­¤å¤„ä¸éœ€MISO,æ•…ç®€åŒ–ä¸ºSDA)
 #define LCD_SDA_PIN				GPIO_Pin_15
 
 #define LCD_RES_PORT			GPIOC
@@ -76,7 +73,7 @@ extern "C" {
 #define LCD_BLK_PIN				GPIO_Pin_11
 
 /************************************************************
-*		[SOFT]¶¨ÒåMCUÇı¶¯LCD¼äGPIO½Ó¿ÚµÄ¾ßÌåÊµÏÖ(ÒÆÖ²ÇëĞŞ¸Ä¸Ã´¦)
+*		[SOFT]å®šä¹‰MCUé©±åŠ¨LCDé—´GPIOæ¥å£çš„å…·ä½“å®ç°(ç§»æ¤è¯·ä¿®æ”¹è¯¥å¤„)
 ************************************************************/
 #define LCD_SCL_0()             GPIO_ResetBits(LCD_SCL_PORT,LCD_SCL_PIN)	//SCL=SCLK
 #define LCD_SCL_1()             GPIO_SetBits(LCD_SCL_PORT,LCD_SCL_PIN)
@@ -99,7 +96,7 @@ extern "C" {
 /***********************************************************/
 #elif	LCD_USE_SPI_CTRL_MODE == LCD_HARD_SPI_CTRL
 /************************************************************
-*		[HARD]ÊÇ·ñÊ¹ÓÃDMAÆôÓÃ×÷ÎªÓ²¼ş¼ÓËÙÔöÒæ
+*		[HARD]æ˜¯å¦ä½¿ç”¨DMAå¯ç”¨ä½œä¸ºç¡¬ä»¶åŠ é€Ÿå¢ç›Š
 ************************************************************/
 
 #define LCD_USE_DMA_CTRL_MODE	LCD_USE_DMA
@@ -114,7 +111,7 @@ extern "C" {
 #endif
 
 /************************************************************
-*		[HARD]¶¨ÒåLCDÆÁÄ»ÓëMCUµÄ½Ó¿ÚGPIO
+*		[HARD]å®šä¹‰LCDå±å¹•ä¸MCUçš„æ¥å£GPIO
 ************************************************************/
 #define LCD_RES_PORT			GPIOC
 #define LCD_RES_PIN				GPIO_Pin_7
@@ -129,7 +126,7 @@ extern "C" {
 #define LCD_BLK_PIN				GPIO_Pin_11
 
 /************************************************************
-*		[HARD]¶¨ÒåMCUÇı¶¯LCD¼äGPIO½Ó¿ÚµÄ¾ßÌåÊµÏÖ
+*		[HARD]å®šä¹‰MCUé©±åŠ¨LCDé—´GPIOæ¥å£çš„å…·ä½“å®ç°
 ************************************************************/
 #define LCD_RES_0()             LCD_RES_PORT->BSRR=LCD_RES_PIN<<16
 #define LCD_RES_1()             LCD_RES_PORT->BSRR=LCD_RES_PIN
@@ -146,7 +143,7 @@ extern "C" {
 #endif
 
 /************************************************************
-*					ÉèÖÃLCD¸÷Ïî»º³åÇø´óĞ¡
+*					è®¾ç½®LCDå„é¡¹ç¼“å†²åŒºå¤§å°
 ************************************************************/
 #define LCD_Printf_BufferSize	512U
 
@@ -157,32 +154,32 @@ extern "C" {
 #endif
 
 /************************************************************
-*				Ô¤ÉèÒº¾§ÆÁÉ«²Ê(RGB565)
+*				é¢„è®¾æ¶²æ™¶å±è‰²å½©(RGB565)
 ************************************************************/
-#define LCD_COLOR_WHITE			0xFFFF	//°×É«
-#define LCD_COLOR_BLACK			0x0000	//ºÚÉ«
-#define LCD_COLOR_BLUE			0x001F	//À¶É«
-#define LCD_COLOR_BRED			0XF81F	//Æ«À¶ºì
-#define LCD_COLOR_GRED			0XFFE0	//Æ«ÂÌºì
-#define LCD_COLOR_GBLUE			0X07FF	//Æ«ÂÌÀ¶
-#define LCD_COLOR_RED			0xF800	//ºìÉ«
-#define LCD_COLOR_MAGENTA		0xF81F	//Æ·ºìÉ«
-#define LCD_COLOR_GREEN			0x07E0	//ÂÌÉ«
-#define LCD_COLOR_CYAN			0x7FFF	//ÇàÉ«
-#define LCD_COLOR_YELLOW		0xFFE0	//»ÆÉ«
-#define LCD_COLOR_BROWN			0XBC40	//×ØÉ«
-#define LCD_COLOR_BRRED			0XFC07	//×ØºìÉ«
-#define LCD_COLOR_GRAY			0X8430	//»ÒÉ«
-#define LCD_COLOR_DARKBLUE		0X01CF	//ÉîÀ¶É«
-#define LCD_COLOR_LIGHTBLUE		0X7D7C	//ÁÁÀ¶É«
-#define LCD_COLOR_GRAYBLUE		0X5458	//»ÒÀ¶É«
-#define LCD_COLOR_LIGHTGREEN	0X841F	//Ç³ÂÌÉ«
-#define LCD_COLOR_LGRAY			0XC618	//Ç³»ÒÉ«(PANNEL),´°Ìå±³¾°É«
-#define LCD_COLOR_LGRAYBLUE		0XA651	//Ç³»ÒÀ¶É«(ÖĞ¼ä²ãÑÕÉ«)
-#define LCD_COLOR_LBBLUE		0X2B12	//Ç³×ØÀ¶É«(Ñ¡ÔñÌõÄ¿µÄ·´É«)
+#define LCD_COLOR_WHITE			0xFFFF	//ç™½è‰²
+#define LCD_COLOR_BLACK			0x0000	//é»‘è‰²
+#define LCD_COLOR_BLUE			0x001F	//è“è‰²
+#define LCD_COLOR_BRED			0XF81F	//åè“çº¢
+#define LCD_COLOR_GRED			0XFFE0	//åç»¿çº¢
+#define LCD_COLOR_GBLUE			0X07FF	//åç»¿è“
+#define LCD_COLOR_RED			0xF800	//çº¢è‰²
+#define LCD_COLOR_MAGENTA		0xF81F	//å“çº¢è‰²
+#define LCD_COLOR_GREEN			0x07E0	//ç»¿è‰²
+#define LCD_COLOR_CYAN			0x7FFF	//é’è‰²
+#define LCD_COLOR_YELLOW		0xFFE0	//é»„è‰²
+#define LCD_COLOR_BROWN			0XBC40	//æ£•è‰²
+#define LCD_COLOR_BRRED			0XFC07	//æ£•çº¢è‰²
+#define LCD_COLOR_GRAY			0X8430	//ç°è‰²
+#define LCD_COLOR_DARKBLUE		0X01CF	//æ·±è“è‰²
+#define LCD_COLOR_LIGHTBLUE		0X7D7C	//äº®è“è‰²
+#define LCD_COLOR_GRAYBLUE		0X5458	//ç°è“è‰²
+#define LCD_COLOR_LIGHTGREEN	0X841F	//æµ…ç»¿è‰²
+#define LCD_COLOR_LGRAY			0XC618	//æµ…ç°è‰²(PANNEL),çª—ä½“èƒŒæ™¯è‰²
+#define LCD_COLOR_LGRAYBLUE		0XA651	//æµ…ç°è“è‰²(ä¸­é—´å±‚é¢œè‰²)
+#define LCD_COLOR_LBBLUE		0X2B12	//æµ…æ£•è“è‰²(é€‰æ‹©æ¡ç›®çš„åè‰²)
 
 /************************************************************
-*			ST7789³£ÓÃÃüÁî×ÖÁĞ±í(²»ÒªĞŞ¸Ä!)
+*			ST7789å¸¸ç”¨å‘½ä»¤å­—åˆ—è¡¨(ä¸è¦ä¿®æ”¹!)
 ************************************************************/
 #define LCD_CMD_INVOFF			0x20
 #define LCD_CMD_INVON			0x21
@@ -207,7 +204,7 @@ extern "C" {
 #define LCD_CMD_STE				0x44
 
 /************************************************************
-*						Ïà¹Ø×´Ì¬½á¹¹Ìå
+*						ç›¸å…³çŠ¶æ€ç»“æ„ä½“
 ************************************************************/
 typedef struct
 {
@@ -217,28 +214,28 @@ typedef struct
 
 		struct
 		{
-			uint32_t SCAN_MODE		:2;			//Òº¾§É¨Ãè·½Ê½
-			uint32_t fmt_mode		:1;			//¸ñÊ½»¯ÏÔÊ¾Ä£Ê½
-			uint32_t fmt_sizey		:16;		//¸ñÊ½»¯×ÖºÅ´óĞ¡
-			uint32_t RESERVED		:13;		//µÚÒ»×Ö¶Î±£ÁôÎ»
+			uint32_t SCAN_MODE		:2;			//æ¶²æ™¶æ‰«ææ–¹å¼
+			uint32_t fmt_mode		:1;			//æ ¼å¼åŒ–æ˜¾ç¤ºæ¨¡å¼
+			uint32_t fmt_sizey		:16;		//æ ¼å¼åŒ–å­—å·å¤§å°
+			uint32_t RESERVED		:13;		//ç¬¬ä¸€å­—æ®µä¿ç•™ä½
 
-			uint32_t fmt_x			:16;		//¸ñÊ½»¯x×ø±ê
-			uint32_t fmt_y			:16;		//¸ñÊ½»¯y×ø±ê
+			uint32_t fmt_x			:16;		//æ ¼å¼åŒ–xåæ ‡
+			uint32_t fmt_y			:16;		//æ ¼å¼åŒ–yåæ ‡
 
-			uint32_t fmt_font_color	:16;		//¸ñÊ½»¯×ÖÌåÑÕÉ«
-			uint32_t fmt_bg_color	:16;		//¸ñÊ½»¯±³¾°ÑÕÉ«
+			uint32_t fmt_font_color	:16;		//æ ¼å¼åŒ–å­—ä½“é¢œè‰²
+			uint32_t fmt_bg_color	:16;		//æ ¼å¼åŒ–èƒŒæ™¯é¢œè‰²
 		}BIT;
 	};
 
 }LCD_STATUS_TypeDef;
 
 /************************************************************
-*					ÓÃ»§API½Ó¿Ú¼°±äÁ¿Íâ²¿ÒıÓÃÉùÃ÷
+*					ç”¨æˆ·APIæ¥å£åŠå˜é‡å¤–éƒ¨å¼•ç”¨å£°æ˜
 ************************************************************/
-/*Çı¶¯²ã*/
+/*é©±åŠ¨å±‚*/
 void LCD_Init(void);
 
-/*ÓÃ»§²ã*/
+/*ç”¨æˆ·å±‚*/
 void LCD_FillColor(uint16_t x1,uint16_t y1,uint16_t x2,uint16_t y2,uint16_t color);
 void LCD_DrawLine(uint16_t x1,uint16_t y1,uint16_t x2,uint16_t y2,uint16_t color);
 void LCD_DrawPoint(uint16_t x,uint16_t y,uint16_t color);
@@ -249,7 +246,7 @@ void LCD_Set_Printfmt(uint16_t x,uint16_t y,uint16_t font_color,uint16_t bg_colo
 void LCD_Printf(const char *fmt,...);
 void LCD_ShowPicture(uint16_t x,uint16_t y,uint16_t x_dir_width,uint16_t y_dir_width,const uint8_t pic[]);
 
-/*Íâ²¿¿É·ÃÎÊLCD×´Ì¬*/
+/*å¤–éƒ¨å¯è®¿é—®LCDçŠ¶æ€*/
 extern LCD_STATUS_TypeDef	LCD_STATUS;
 
 #ifdef __cplusplus

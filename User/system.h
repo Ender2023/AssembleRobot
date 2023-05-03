@@ -44,10 +44,19 @@ __NOP;
 /**
  * DEFINE
 */
-#define ROBOARM_BIGARM_GEAR     20.0f
-#define ROBOARM_SMALLARM_GEAR   16.25f
-#define ROBOARM_ROTATION_GEAR   4.65f
+#define pi                      3.14159f
 
+#define rads_to_angle(x)        ( ( 180.0f / pi ) * x )
+#define angle_to_rads(x)        ( ( pi / 180.0f ) * x )
+
+/*角度映射至-180° ~ +180°*/
+#define angle_mapping(_angle)    {                                                       \
+                                    _angle = fmod(_angle,360);                           \
+                                    if( _angle > 180 )                                   \
+                                    {_angle -= 360;}                                     \
+                                    else if( _angle < -180 )                             \
+                                    {_angle += 360;}                                     \
+                                }
 
 /**
  * DECLARE

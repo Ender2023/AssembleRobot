@@ -3,126 +3,120 @@
 
 #include "system.h"
 
-/*ÈÎÎñµ÷¶È¶¨Ê±Æ÷*/
-#define STEP_MOTOR_TIM                      TIM2                    //²½½øµç»ú¶¨Ê±Æ÷Ëù¶ÔÓ¦µÄÊµ¼ÊÓ²¼ş×ÊÔ´
-#define STEP_MOTOR_TIM_RCC                  RCC_APB1Periph_TIM2     //²½½øµç»ú¶¨Ê±Æ÷Ê±ÖÓÍâÉèµØÖ·
-#define STEP_MOTOR_TIM_CLK_DIV              TIM_CKD_DIV2            //²½½øµç»ú¶¨Ê±Æ÷Ê±ÖÓ·ÖÆµ,À´×ÔAPBÇÅSysclk
-#define STEP_MOTOR_TIM_PERIOD               100                     //²½½øµç»ú¶¨Ê±Æ÷Òç³öÖÜÆÚ
-#define STEP_MOTOR_TIM_PRESCALER            72                      //²½½øµç»ú¶¨Ê±Æ÷Ô¤·ÖÆµÏµÊı
-#define STEP_MOTOR_TIM_IRQ_REGISTER         TIM2_IRQn               //ÏòÄÚºË×¢²á²½½øµç»ú¶¨Ê±Æ÷ÖĞ¶Ï·şÎñº¯Êı
-#define STEP_MOTOR_TIM_EVENTHANDLER         TIM2_IRQHandler         //²½½øµç»ú¶¨Ê±Æ÷ÖĞ¶ÏÊÂ¼ş»Øµ÷º¯Êı
+/*ä»»åŠ¡è°ƒåº¦å®šæ—¶å™¨*/
+#define STEP_MOTOR_TIM                      TIM2                    //æ­¥è¿›ç”µæœºå®šæ—¶å™¨æ‰€å¯¹åº”çš„å®é™…ç¡¬ä»¶èµ„æº
+#define STEP_MOTOR_TIM_RCC                  RCC_APB1Periph_TIM2     //æ­¥è¿›ç”µæœºå®šæ—¶å™¨æ—¶é’Ÿå¤–è®¾åœ°å€
+#define STEP_MOTOR_TIM_CLK_DIV              TIM_CKD_DIV2            //æ­¥è¿›ç”µæœºå®šæ—¶å™¨æ—¶é’Ÿåˆ†é¢‘,æ¥è‡ªAPBæ¡¥Sysclk
+#define STEP_MOTOR_TIM_PERIOD               100                     //æ­¥è¿›ç”µæœºå®šæ—¶å™¨æº¢å‡ºå‘¨æœŸ
+#define STEP_MOTOR_TIM_PRESCALER            72                      //æ­¥è¿›ç”µæœºå®šæ—¶å™¨é¢„åˆ†é¢‘ç³»æ•°
+#define STEP_MOTOR_TIM_IRQ_REGISTER         TIM2_IRQn               //å‘å†…æ ¸æ³¨å†Œæ­¥è¿›ç”µæœºå®šæ—¶å™¨ä¸­æ–­æœåŠ¡å‡½æ•°
+#define STEP_MOTOR_TIM_EVENTHANDLER         TIM2_IRQHandler         //æ­¥è¿›ç”µæœºå®šæ—¶å™¨ä¸­æ–­äº‹ä»¶å›è°ƒå‡½æ•°
 
-/*Èí¼ş´®¿Ú¿ØÖÆ*/
-#define STEP_MOTOR_TTYSX_BUS                USART1                  //²½½øµç»ú´®¿Ú×ÜÏß¶ÔÓ¦µÄÊµ¼ÊÓ²¼ş×ÊÔ´
-#define STEP_MOTOR_TTYSX_BUS_BUADRATE       38400                   //ÓÉ´®¿Ú×ÜÏß´ø¶¯µÄ´®¿Ú²¨ÌØÂÊ´óĞ¡
-#define STEP_MOTOR_TTYSX_BUS_IRQ_REGISTER   USART1_IRQHandler       //ÏòÄÚºË×¢²á²½½øµç»ú´®¿ÚÖĞ¶Ï»Øµ÷º¯Êı
+/*è½¯ä»¶ä¸²å£æ§åˆ¶*/
+#define STEP_MOTOR_TTYSX_BUS                USART1                  //æ­¥è¿›ç”µæœºä¸²å£æ€»çº¿å¯¹åº”çš„å®é™…ç¡¬ä»¶èµ„æº
+#define STEP_MOTOR_TTYSX_BUS_BUADRATE       38400                   //ç”±ä¸²å£æ€»çº¿å¸¦åŠ¨çš„ä¸²å£æ³¢ç‰¹ç‡å¤§å°
+#define STEP_MOTOR_TTYSX_BUS_IRQ_REGISTER   USART1_IRQHandler       //å‘å†…æ ¸æ³¨å†Œæ­¥è¿›ç”µæœºä¸²å£ä¸­æ–­å›è°ƒå‡½æ•°
 
-#define STEP_MOTOR_SOFT_SPEED_MAX           1279                    //²½½øµç»ú×î´óËÙ¶ÈÁ¿»¯Öµ
+#define STEP_MOTOR_SOFT_SPEED_MAX           1279                    //æ­¥è¿›ç”µæœºæœ€å¤§é€Ÿåº¦é‡åŒ–å€¼
 
-#define STEP_MOTOR_PULSE_BY_DELAY           false                   //Ê¹ÄÜÓÉ×èÈû´ø¶¯µÄÂö³å·¢Éú(²»½¨Òé)
+#define STEP_MOTOR_PULSE_BY_DELAY           false                   //ä½¿èƒ½ç”±é˜»å¡å¸¦åŠ¨çš„è„‰å†²å‘ç”Ÿ(æµ‹è¯•ç”¨,ä¸å»ºè®®å®é™…åº”ç”¨ä¸­å¼€å¯)
 
-/*²½½øµç»úÏ¸·ÖÃ¶¾Ù*/
-/**
- * Õë¶ÔÊ±´ú³¬Èº42²½½øÇı¶¯Æ÷£¬Æä²¦Âë¿ª¹Ø±àÂëÓëÏ¸·Ö¹ØÏµ±íÈçÏÂ£º
- *      BIT0    BIT1    BIT2    DIV
- *      ON      ON      ON      1
- *      OFF     ON      ON      2
- *      ON      OFF     ON      4
- *      OFF     OFF     ON      8
- *      ON      ON      OFF     16
- *      OFF     ON      OFF     32
-*/
-typedef enum{div1 = 1,div_2 = 2,div_4 = 4,div_8 = 8,div_16 = 16,div_32 = 32}stepMotorDivision;
 
-/*²½½øµç»úÒı½ÅÃ¶¾Ù*/
-typedef enum{MotorIOA = 0,MotorIOB,MotorIOC,MotorIOD,MotorIOE,MotorIOF,MotorIOG}stepMotorGPIO;
+/*æ­¥è¿›ç”µæœºå¼•è„šæšä¸¾*/
+/*MotorIOXä»£è¡¨ä¸ä½¿ç”¨*/
+typedef enum{MotorIOX = 0,MotorIOA,MotorIOB,MotorIOC,MotorIOD,MotorIOE,MotorIOF,MotorIOG}stepMotorGPIO;
 
-/*²½½øµç»ú·½ÏòÃ¶¾Ù*/
+/*æ­¥è¿›ç”µæœºæ–¹å‘æšä¸¾*/
 typedef enum{dir_pos = 0,dir_neg}stepMotorDir;
 
-/*²½½øµç»ú×´Ì¬Ã¶¾Ù*/
+/*æ­¥è¿›ç”µæœºçŠ¶æ€æšä¸¾*/
 typedef enum{disable = 0,stop,run}stepMotorState;
 
-/*²½½øµç»ú´®¿Ú¿ØÖÆÑ¡ÏîÃ¶¾Ù*/
+/*æ­¥è¿›ç”µæœºä¸²å£æ§åˆ¶é€‰é¡¹æšä¸¾*/
 typedef enum{ttyS_NULL = 0,ttyS1,ttyS2,ttyS3,ttyS4,ttyS5}stepMotorSerialPort;
 
-/*²½½øµç»ú¿ØÖÆÄ£Ê½*/
+/*æ­¥è¿›ç”µæœºæ§åˆ¶æ¨¡å¼*/
 typedef enum{SOFT_CTRL = 0,HARD_CTRL}stepMotorCtrlMode; 
 
-/*²½½øµç»úÀà³õÊ¼»¯²ÎÊı*/
+/*æœ‰æ•ˆç”µæœºä½¿èƒ½æ§åˆ¶ç”µå¹³*/
+typedef enum{LOW_LEVEL = 0,HIGH_LEVEL}stepMotorENALevel;
+
+/*æ­¥è¿›ç”µæœºç±»åˆå§‹åŒ–å‚æ•°*/
 typedef struct 
 {
-    /*ÓÉÓÃ»§ÅäÖÃµÄµç»úÒı½ÅÊôĞÔ*/
+    /*ç”±ç”¨æˆ·é…ç½®çš„ç”µæœºå¼•è„šå±æ€§*/
     struct
     {
-        stepMotorSerialPort     ttySx;          //Ñ¡ÔñÓÉ´®¿ÚxÀ´¶Ô¸Ãµç»ú½øĞĞ¿ØÖÆ(Èí¼ş)
-        uint8_t                 addr;           //¼ÇÂ¼¸Ã²½½øµç»úÔÚ´®¿Ú×ÜÏßÉÏµÄµØÖ·(Èí¼ş)
+        stepMotorSerialPort     ttySx;          //é€‰æ‹©ç”±ä¸²å£xæ¥å¯¹è¯¥ç”µæœºè¿›è¡Œæ§åˆ¶(è½¯ä»¶)
+        uint8_t                 addr;           //è®°å½•è¯¥æ­¥è¿›ç”µæœºåœ¨ä¸²å£æ€»çº¿ä¸Šçš„åœ°å€(è½¯ä»¶)
 
-        stepMotorGPIO           DIR_PORT;       //·½Ïò¶Ë¶Ë¿Ú
-        stepMotorGPIO           ENA_PORT;       //Ê¹ÄÜ¶Ë¶Ë¿Ú
-        stepMotorGPIO           STP_PORT;       //²½½ø¶Ë¶Ë¿Ú
-        stepMotorGPIO           COM_PORT;       //¹«¹²¶Ë¶Ë¿Ú
+        stepMotorENALevel       ENA_Level;      //æœ‰æ•ˆæ§åˆ¶ç”µå¹³
+        stepMotorGPIO           DIR_PORT;       //æ–¹å‘ç«¯ç«¯å£
+        stepMotorGPIO           ENA_PORT;       //ä½¿èƒ½ç«¯ç«¯å£
+        stepMotorGPIO           STP_PORT;       //æ­¥è¿›ç«¯ç«¯å£
+        stepMotorGPIO           COM_PORT;       //å…¬å…±ç«¯ç«¯å£
 
-        uint32_t                DIR_PIN;        //·½Ïò¶ËÒı½Å
-        uint32_t                ENA_PIN;        //Ê¹ÄÜ¶ËÒı½Å
-        uint32_t                STP_PIN;        //²½½ø¶ËÒı½Å
-        uint32_t                COM_PIN;        //¹«¹²¶ËÒı½Å
+        uint32_t                DIR_PIN;        //æ–¹å‘ç«¯å¼•è„š
+        uint32_t                ENA_PIN;        //ä½¿èƒ½ç«¯å¼•è„š
+        uint32_t                STP_PIN;        //æ­¥è¿›ç«¯å¼•è„š
+        uint32_t                COM_PIN;        //å…¬å…±ç«¯å¼•è„š
+
     }IO;
 
-    /*ÓÉÓÃ»§ÅäÖÃµÄµç»úÊôĞÔ*/
+    /*ç”±ç”¨æˆ·é…ç½®çš„ç”µæœºå±æ€§*/
     struct
     {
 
-        stepMotorDivision       division;       //Ï¸·Ö
-        stepMotorDir            dir;            //·½Ïò
+        uint8_t                 division;       //ç»†åˆ†
+        stepMotorDir            dir;            //æ–¹å‘
 
-        float                   speed;          //ËÙ¶È
-        float                   DEG;            //²½¾à½Ç
-        uint32_t                freq_min;       //ÆµÂÊÏÂÏŞ
-        uint32_t                freq_max;       //ÆµÂÊÉÏÏŞ
+        float                   speed;          //é€Ÿåº¦
+        float                   DEG;            //æ­¥è·è§’
+        uint32_t                freq_min;       //é¢‘ç‡ä¸‹é™
+        uint32_t                freq_max;       //é¢‘ç‡ä¸Šé™
     }param;
     
-    stepMotorCtrlMode           CTRL_MODE;      //¿ØÖÆÄ£Ê½
+    stepMotorCtrlMode           CTRL_MODE;      //æ§åˆ¶æ¨¡å¼
 
 }stepMotorInitTypeDef;
 
 
-/*²½½øµç»úÀà¶¨Òå*/
+/*æ­¥è¿›ç”µæœºç±»å®šä¹‰*/
 typedef struct
 {
-    /*¹«ÓĞ²ÎÊıÓÉÓÃ»§ÅäÖÃ*/
+    /*å…¬æœ‰å‚æ•°ç”±ç”¨æˆ·é…ç½®*/
     stepMotorInitTypeDef        Public;
 
-    /*Ë½ÓĞ²ÎÊıÓÉÏµÍ³µ÷ÓÃ*/
+    /*ç§æœ‰å‚æ•°ç”±ç³»ç»Ÿè°ƒç”¨*/
     struct 
     {
-        /*Ó²¼ş¿ØÖÆÒı½Å*/
-        GPIO_TypeDef *          DIR_GPIO_PORT;   //GPIO·½Ïò¶Ë¶Ë¿Ú
-        GPIO_TypeDef *          ENA_GPIO_PORT;   //GPIOÊ¹ÄÜ¶Ë¶Ë¿Ú
-        GPIO_TypeDef *          STP_GPIO_PORT;   //GPIO²½½ø¶Ë¶Ë¿Ú
-        GPIO_TypeDef *          COM_GPIO_PORT;   //GPIO¹«¹²¶Ë¶Ë¿Ú
+        /*ç¡¬ä»¶æ§åˆ¶å¼•è„š*/
+        GPIO_TypeDef *          DIR_GPIO_PORT;   //GPIOæ–¹å‘ç«¯ç«¯å£
+        GPIO_TypeDef *          ENA_GPIO_PORT;   //GPIOä½¿èƒ½ç«¯ç«¯å£
+        GPIO_TypeDef *          STP_GPIO_PORT;   //GPIOæ­¥è¿›ç«¯ç«¯å£
+        GPIO_TypeDef *          COM_GPIO_PORT;   //GPIOå…¬å…±ç«¯ç«¯å£
 
-        /*Èí¼şÕ¼ÓÃ´®¿ÚÓëÖĞ¶ÏºÅ*/
-        USART_TypeDef *         ttySx;           //Ê¹ÓÃµÄ´®¿Ú
-        uint16_t                ttyS_IRQ;        //Õ¼ÓÃµÄ´®¿ÚÖĞ¶ÏºÅ
+        /*è½¯ä»¶å ç”¨ä¸²å£ä¸ä¸­æ–­å·*/
+        USART_TypeDef *         ttySx;           //ä½¿ç”¨çš„ä¸²å£
+        uint16_t                ttyS_IRQ;        //å ç”¨çš„ä¸²å£ä¸­æ–­å·
 
-        /*Èí¼ş¿ØÖÆÒı½Å*/
-        GPIO_TypeDef *          ttySx_Tx_PORT;   //´®¿Ú½ÓÊÕ¶Ë¶Ë¿Ú
-        GPIO_TypeDef *          ttySx_Rx_PORT;   //´®¿Ú·¢ËÍ¶Ë¶Ë¿Ú
+        /*è½¯ä»¶æ§åˆ¶å¼•è„š*/
+        GPIO_TypeDef *          ttySx_Tx_PORT;   //ä¸²å£æ¥æ”¶ç«¯ç«¯å£
+        GPIO_TypeDef *          ttySx_Rx_PORT;   //ä¸²å£å‘é€ç«¯ç«¯å£
 
-        uint32_t                ttySx_Tx_Pin;    //´®¿Ú·¢ËÍ¶ËÒı½Å
-        uint32_t                ttySx_Rx_Pin;    //´®¿Ú·¢ËÍ¶ËÒı½Å
+        uint32_t                ttySx_Tx_Pin;    //ä¸²å£å‘é€ç«¯å¼•è„š
+        uint32_t                ttySx_Rx_Pin;    //ä¸²å£å‘é€ç«¯å¼•è„š
 
-        /*¿ØÖÆ½Ç¶È*/
-        uint16_t                pulse;           //Òª·¢ËÍµÄÂö³å¸öÊı
-        uint16_t                pulse_cnt;       //ÒÑ·¢³öµÄÂö³å¸öÊı
+        /*æ§åˆ¶è§’åº¦*/
+        uint32_t                pulse;           //è¦å‘é€çš„è„‰å†²ä¸ªæ•°
+        uint32_t                pulse_cnt;       //å·²å‘å‡ºçš„è„‰å†²ä¸ªæ•°
 
-        /*¿ØÖÆËÙ¶È*/
-        uint32_t                Hz;              //¸ù¾İËÙ¶ÈÕ¼±ÈµÃµ½Êµ¼ÊËùĞèÆµÂÊ
-        uint32_t                nopTime_us;      //¸ù¾İÊµ¼ÊÆµÂÊ»»ËãÑÓÊ±Ê±¼ä
-        uint32_t                delay_cnt;       //ÒÑÑÓÊ±Ê±¼ä
+        /*æ§åˆ¶é€Ÿåº¦*/
+        uint32_t                Hz;              //æ ¹æ®é€Ÿåº¦å æ¯”å¾—åˆ°å®é™…æ‰€éœ€é¢‘ç‡
+        uint32_t                nopTime_us;      //æ ¹æ®å®é™…é¢‘ç‡æ¢ç®—å»¶æ—¶æ—¶é—´
+        uint32_t                delay_cnt;       //å·²å»¶æ—¶æ—¶é—´
 
-        stepMotorState          status;          //ÔËĞĞ×´Ì¬
+        stepMotorState          status;          //è¿è¡ŒçŠ¶æ€
 
     }Private;
 
@@ -131,7 +125,7 @@ typedef struct
 void StepMotor_Init(stepMotorClass * motor,stepMotorInitTypeDef * stepMotorParam);
 int StepMotor_Cmd(stepMotorClass * motor,FunctionalState NewState);
 int StepMotor_Brake(stepMotorClass * motor);
-int stepMotor_StepFoward(stepMotorClass * motor, uint16_t xStep);
+int stepMotor_StepFoward(stepMotorClass * motor, uint32_t xStep);
 int stepMotor_AngleFoward(stepMotorClass * motor,float angle);
 int stepMotor_DirChange(stepMotorClass * motor,stepMotorDir dir);
 int stepMotor_SpeedChange(stepMotorClass * motor,float newSpeed);
@@ -139,5 +133,10 @@ int stepMotor_DivisionChange(stepMotorClass * motor,uint8_t newDivision);
 int stepMotor_SpeedExecute(stepMotorClass * motor,stepMotorDir newDir,float newSpeed,uint8_t acceleration);
 int stepMotor_PulseExecute(stepMotorClass * motor, stepMotorDir newDir, float newSpeed,uint8_t acceleration, uint32_t pulse);
 int stepMotor_AngleExecute(stepMotorClass * motor, stepMotorDir newDir, float newSpeed,uint8_t acceleration,float angle);
+void steoMotor_TaskExcute(void);
+
+#if STEP_MOTOR_PULSE_BY_DELAY == true
+void stepMotorStepFoward(stepMotorClass * motor, uint16_t xStep);
+#endif
 
 #endif

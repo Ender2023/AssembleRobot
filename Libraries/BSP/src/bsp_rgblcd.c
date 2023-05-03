@@ -5,10 +5,12 @@
 *@date:		2022-10-14
 ************************************************************/
 
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include "bsp_rgblcd.h"
-#include "bsp_delay.h"
 #include "lcd_Fontlib.h"
-
+#include "bsp_delay.h"
 
 LCD_STATUS_TypeDef	LCD_STATUS={.WORD[0]=0};
 static char LCD_Printf_Buffer[LCD_Printf_BufferSize];
@@ -25,20 +27,20 @@ static void LCD_PIN_CONFIG(void)
 {
 	GPIO_InitTypeDef  GPIO_InitStructure;
 
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB|RCC_APB2Periph_GPIOC, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC|RCC_APB2Periph_GPIOB, ENABLE);
 
 	GPIO_InitStructure.GPIO_Pin = LCD_RES_PIN|LCD_DC_PIN|LCD_CS_PIN|LCD_BLK_PIN;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
 
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_InitStructure.GPIO_Pin = LCD_SCL_PIN|LCD_SDA_PIN;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-
 	/*确定各引脚的上电状态*/
-	GPIO_SetBits(GPIOB,LCD_SCL_PIN|LCD_SDA_PIN);
-	GPIO_SetBits(GPIOC,LCD_RES_PIN|LCD_DC_PIN|LCD_CS_PIN|LCD_BLK_PIN);
+	GPIO_ResetBits(GPIOC,LCD_RES_PIN|LCD_DC_PIN|LCD_CS_PIN|LCD_BLK_PIN);
+	GPIO_ResetBits(GPIOB,LCD_SCL_PIN|LCD_SDA_PIN);
 }
 
 /************************************************************
@@ -202,7 +204,7 @@ void LCD_Init(void)
 {
 	LCD_PIN_CONFIG();
 
-	LCD_STATUS.BIT.SCAN_MODE = 0;
+	LCD_STATUS.BIT.SCAN_MODE = 2;
 
 	/*复位(必要操作)*/
 	LCD_RES_0();
@@ -258,10 +260,14 @@ void LCD_Init(void)
 	LCD_WRITE_CMD(0xC5); //VCOM 
 	LCD_WRITE_DATA_BYTE(0x1A); 
 	LCD_WRITE_CMD(0x36);
-	if	   (LCD_STATUS.BIT.SCAN_MODE == 0){LCD_WRITE_DATA_BYTE(0x08);}
-	else if(LCD_STATUS.BIT.SCAN_MODE == 1){LCD_WRITE_DATA_BYTE(0xC8);}
-	else if(LCD_STATUS.BIT.SCAN_MODE == 2){LCD_WRITE_DATA_BYTE(0x78);}
-	else if(LCD_STATUS.BIT.SCAN_MODE == 3){LCD_WRITE_DATA_BYTE(0xA8);}
+	switch(LCD_STATUS.BIT.SCAN_MODE)
+	{
+		case 0:	LCD_WRITE_DATA_BYTE(0x08);break;
+		case 1:	LCD_WRITE_DATA_BYTE(0xC8);break;
+		case 2:	LCD_WRITE_DATA_BYTE(0x78);break;
+		case 3:	LCD_WRITE_DATA_BYTE(0xA8);break;
+		default: break;
+	}
 
 	LCD_WRITE_CMD(0xE0); 
 	LCD_WRITE_DATA_BYTE(0x04); 
@@ -303,7 +309,7 @@ void LCD_Init(void)
 	LCD_WRITE_CMD(0x29); //Display on 
 
 	LCD_FillColor(0,0,240,240,LCD_COLOR_BLACK);
-	LCD_Set_Printfmt(0,0,LCD_COLOR_WHITE,LCD_COLOR_BLACK,24,false);
+	LCD_Set_Printfmt(0,0,LCD_COLOR_WHITE,LCD_COLOR_BLACK,12,false);
 }
 
 /************************************************************
@@ -343,11 +349,11 @@ static void LCD_OpenWindow(uint16_t x1,uint16_t y1,uint16_t x2,uint16_t y2)
 		case 2:
 		{
 			LCD_WRITE_CMD(LCD_CMD_CASET);//列地址设置
-			LCD_WRITE_DATA_HALFWORD(y1+1);
-			LCD_WRITE_DATA_HALFWORD(y2+1);
+			LCD_WRITE_DATA_HALFWORD(x1+3);
+			LCD_WRITE_DATA_HALFWORD(x2+3);
 			LCD_WRITE_CMD(LCD_CMD_RASET);//行地址设置
-			LCD_WRITE_DATA_HALFWORD(x1+2);
-			LCD_WRITE_DATA_HALFWORD(x2+2);
+			LCD_WRITE_DATA_HALFWORD(y1+2);
+			LCD_WRITE_DATA_HALFWORD(y2+2);
 			LCD_WRITE_CMD(LCD_CMD_RAMWR);//储存器写
 			break;
 		}

@@ -1,7 +1,7 @@
 #include "system.h"
 
 /**
- * @brief:  ΟµΝ³ΥϋΜε³υΚΌ»―
+ * @brief:  η³»η»ζ•΄δ½“εε§‹ε–
 */
 void System_Init(void)
 {

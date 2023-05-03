@@ -34,7 +34,7 @@ void delay_ms(uint32_t xms)
   */
 void delay_s(uint32_t xs)
 {
-	while(xs--)
+	while(xs --)
 	{
 		delay_ms(1000);
 	}
