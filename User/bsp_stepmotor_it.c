@@ -81,7 +81,7 @@ void STEP_MOTOR_TIM_EVENTHANDLER(void)
 }
 
 /**
- * @brief:  步进电机串口中断回调函数
+ * @brief:  步进电机串口总线事件中断回调函数
 */
 void STEP_MOTOR_TTYSX_BUS_IRQ_REGISTER(void)
 {
@@ -99,3 +99,7 @@ void STEP_MOTOR_TTYSX_BUS_IRQ_REGISTER(void)
         SYS_DEBUG("%s\n",stepMotorSerialDataFrame.RX_BUF);
     }
 }
+
+/************************************************************
+*						End of File
+************************************************************/

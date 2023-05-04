@@ -29,8 +29,8 @@
 
 #define	CLAMP_JAW_SetPWM(x)     TIM4->CCR1 = ( (uint16_t) ( SCLAMP_JAW_K * x + CLAMP_JAW_B ) ) - 1
 
-#define CLAMP_JAW_CATCH()       CLAMP_JAW_SetPWM(110)
-#define CLAMP_JAW_RELEASE()     CLAMP_JAW_SetPWM(30)
+#define CLAMP_JAW_CATCH()       CLAMP_JAW_SetPWM(110);Display_Logged("Clamp jaw Catch!\n")
+#define CLAMP_JAW_RELEASE()     CLAMP_JAW_SetPWM(30);Display_Logged("Clamp jaw Release!\n")
 
 /*机械手运动方式*/
 typedef enum{rotation = 0,line}roboARM_Movetype;
@@ -63,3 +63,7 @@ int robo_InverseMotion(float x,float y,float z,float speed,uint8_t acceleratre);
 
 
 #endif
+
+/************************************************************
+*						End of File
+************************************************************/

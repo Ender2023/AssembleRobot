@@ -34,3 +34,7 @@ void serial_SendHexArray(USART_TypeDef * ttySx,char * pSendBuf,uint16_t length);
 void serialDebugInit(void);
 
 #endif
+
+/************************************************************
+*						End of File
+************************************************************/

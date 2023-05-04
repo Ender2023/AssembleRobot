@@ -140,3 +140,7 @@ void stepMotorStepFoward(stepMotorClass * motor, uint16_t xStep);
 #endif
 
 #endif
+
+/************************************************************
+*						End of File
+************************************************************/

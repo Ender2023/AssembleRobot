@@ -113,7 +113,8 @@
           "Libraries/CMSIS/CM3/DeviceSupport/ST/STM32F10x/startup/arm",
           "Libraries/Algorithm",
           "Libraries/BSP/inc",
-          "Libraries/debug"
+          "Libraries/debug",
+          "User/Robot/inc"
         ],
         "libList": [],
         "sourceDirList": [],

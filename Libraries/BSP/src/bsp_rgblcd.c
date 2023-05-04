@@ -5,7 +5,6 @@
 *@date:		2022-10-14
 ************************************************************/
 
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include "bsp_rgblcd.h"
@@ -204,7 +203,7 @@ void LCD_Init(void)
 {
 	LCD_PIN_CONFIG();
 
-	LCD_STATUS.BIT.SCAN_MODE = 2;
+	LCD_STATUS.BIT.SCAN_MODE = LCD_SCANMODE;
 
 	/*复位(必要操作)*/
 	LCD_RES_0();
@@ -349,8 +348,8 @@ static void LCD_OpenWindow(uint16_t x1,uint16_t y1,uint16_t x2,uint16_t y2)
 		case 2:
 		{
 			LCD_WRITE_CMD(LCD_CMD_CASET);//列地址设置
-			LCD_WRITE_DATA_HALFWORD(x1+3);
-			LCD_WRITE_DATA_HALFWORD(x2+3);
+			LCD_WRITE_DATA_HALFWORD(x1+1);
+			LCD_WRITE_DATA_HALFWORD(x2+1);
 			LCD_WRITE_CMD(LCD_CMD_RASET);//行地址设置
 			LCD_WRITE_DATA_HALFWORD(y1+2);
 			LCD_WRITE_DATA_HALFWORD(y2+2);
@@ -934,59 +933,67 @@ __inline void LCD_Set_Printfmt(uint16_t x,uint16_t y,uint16_t font_color,uint16_
 ************************************************************/
 void LCD_Printf(const char *fmt,...)
 {
-	uint8_t chinese_buf[3]={'\0'};
-	__IO char * dispbuf_ptr=LCD_Printf_Buffer;
+	uint8_t chinese_buf[3] = {'\0'};
+	__IO char * dispbuf_ptr = LCD_Printf_Buffer;
 
 	va_list ap;
 	va_start(ap,fmt);
 	vsprintf(LCD_Printf_Buffer,fmt,ap);
 	va_end(ap);
 
-	while(*dispbuf_ptr !='\0')
+	while(*dispbuf_ptr != '\0')
 	{
 		if(*dispbuf_ptr > 127)
 		{
-			chinese_buf[0]=*dispbuf_ptr++;
-			chinese_buf[1]=*dispbuf_ptr++;
+			chinese_buf[0] = *dispbuf_ptr ++ ;
+			chinese_buf[1] = *dispbuf_ptr ++ ;
 
 			/*换行检测*/
-			if(LCD_STATUS.BIT.fmt_x+LCD_STATUS.BIT.fmt_sizey/2 > LCD_W)
-			{LCD_STATUS.BIT.fmt_x=0;LCD_STATUS.BIT.fmt_y+=LCD_STATUS.BIT.fmt_sizey;}
+			if(LCD_STATUS.BIT.fmt_x + LCD_STATUS.BIT.fmt_sizey / 2 > LCD_W)
+			{LCD_STATUS.BIT.fmt_x=0;LCD_STATUS.BIT.fmt_y += LCD_STATUS.BIT.fmt_sizey;}
 
 			/*汉字显示*/
 			LCD_ShowChinese(LCD_STATUS.BIT.fmt_x,LCD_STATUS.BIT.fmt_y,chinese_buf,LCD_STATUS.BIT.fmt_font_color,
 			LCD_STATUS.BIT.fmt_bg_color,LCD_STATUS.BIT.fmt_sizey,LCD_STATUS.BIT.fmt_mode);
 
 			/*明确坐标*/
-			LCD_STATUS.BIT.fmt_x+=LCD_STATUS.BIT.fmt_sizey;
+			LCD_STATUS.BIT.fmt_x += LCD_STATUS.BIT.fmt_sizey;
 		}
 		else if(*dispbuf_ptr == '\n')
 		{
-			LCD_STATUS.BIT.fmt_x=0;
-			LCD_STATUS.BIT.fmt_y+=LCD_STATUS.BIT.fmt_sizey;
-			dispbuf_ptr++;
+			LCD_STATUS.BIT.fmt_x = 0;
+			LCD_STATUS.BIT.fmt_y += LCD_STATUS.BIT.fmt_sizey;
+			dispbuf_ptr ++;
 		}
 		else if(*dispbuf_ptr == '\t')
 		{
-			if(LCD_STATUS.BIT.fmt_x+2*LCD_STATUS.BIT.fmt_sizey > LCD_W)
-			{LCD_STATUS.BIT.fmt_x=0;LCD_STATUS.BIT.fmt_y+=LCD_STATUS.BIT.fmt_sizey;}
+			if(LCD_STATUS.BIT.fmt_x + 2 * LCD_STATUS.BIT.fmt_sizey > LCD_W)
+			{
+				LCD_STATUS.BIT.fmt_x = 0;
+				LCD_STATUS.BIT.fmt_y += LCD_STATUS.BIT.fmt_sizey;
+			}
 			else
-			{LCD_STATUS.BIT.fmt_x+=2*LCD_STATUS.BIT.fmt_sizey;}
-			dispbuf_ptr++;
+			{
+				LCD_STATUS.BIT.fmt_x += 2*LCD_STATUS.BIT.fmt_sizey;
+			}
+			dispbuf_ptr ++;
 		}
-		else if(*dispbuf_ptr == '\r'){LCD_STATUS.BIT.fmt_x=0;}
+		else if(*dispbuf_ptr == '\r'){LCD_STATUS.BIT.fmt_x = 0;}
 		else
 		{
 			/*换行检测*/
-			if(LCD_STATUS.BIT.fmt_x+LCD_STATUS.BIT.fmt_sizey/2 > LCD_W)
-			{LCD_STATUS.BIT.fmt_x=0;LCD_STATUS.BIT.fmt_y+=LCD_STATUS.BIT.fmt_sizey;}
+			if(LCD_STATUS.BIT.fmt_x + LCD_STATUS.BIT.fmt_sizey/2 > LCD_W)
+			{
+				LCD_STATUS.BIT.fmt_x = 0;
+				LCD_STATUS.BIT.fmt_y += LCD_STATUS.BIT.fmt_sizey;
+			}
 
 			/*ASCII显示*/
-			LCD_ShowChar(LCD_STATUS.BIT.fmt_x,LCD_STATUS.BIT.fmt_y,*dispbuf_ptr++,LCD_STATUS.BIT.fmt_font_color,
+			LCD_ShowChar(LCD_STATUS.BIT.fmt_x,LCD_STATUS.BIT.fmt_y,*dispbuf_ptr ++,LCD_STATUS.BIT.fmt_font_color,
 			LCD_STATUS.BIT.fmt_bg_color,LCD_STATUS.BIT.fmt_sizey,LCD_STATUS.BIT.fmt_mode);
 
 			/*明确坐标*/
-			LCD_STATUS.BIT.fmt_x+=LCD_STATUS.BIT.fmt_sizey/2;
+			LCD_STATUS.BIT.fmt_x += LCD_STATUS.BIT.fmt_sizey / 2;
 		}
 	}
 }

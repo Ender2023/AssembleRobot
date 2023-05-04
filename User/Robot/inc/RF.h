@@ -1,7 +1,10 @@
-#ifndef __DEBUG_H
-#define __DEBUG_H
+#ifndef __RF_H
+#define __RF_H
 
-#include "debug_gpio.h"
+#include "system.h"
+#include "bsp_nRF24L01.h"
+
+void RF_Init(void);
 
 #endif
 

@@ -1,7 +1,7 @@
 #include <math.h>
+#include "bsp_exti.h"
 #include <stdbool.h>
 #include "AssembleRobot.h"
-#include "bsp_exti.h"
 
 /*机器人初始化标志位*/
 bool robot_InitFlag = false;
@@ -19,6 +19,7 @@ static void Robot_clampJawInit(void);
 */
 void Robot_Init(void)
 {
+    Display_Logged("Init robot...\n");
     /*如果尚未初始化过机器手*/
     if( robot_InitFlag == false )
     {
@@ -33,43 +34,53 @@ void Robot_Init(void)
         stepMotorInitStruct.param.division = 16;
 
         StepMotor_Init(&motor1,&stepMotorInitStruct);
+        Display_Logged("Init motor1...\n");
 
         stepMotorInitStruct.IO.addr = 2;
         StepMotor_Init(&motor2,&stepMotorInitStruct);
+        Display_Logged("Init motor2...\n");
 
         stepMotorInitStruct.IO.addr = 3;
         StepMotor_Init(&motor3,&stepMotorInitStruct);
+        Display_Logged("Init motor3...\n");
 
         stepMotorInitStruct.IO.addr = 4;
         StepMotor_Init(&motor4,&stepMotorInitStruct);
+        Display_Logged("Init motor4...\n");
 
         /*大臂关节参数绑定与初始化*/
         roboJoint_MotorBinding(&bigARM,&motor1,ROBOARM_BIGARM_GEAR,rotation);
         bigARM.length = ROBOARM_BIGARM_LENGTH;
+        Display_Logged("Binding big arm...\n");
 
         /*小臂关节参数绑定与初始化*/
         roboJoint_MotorBinding(&smallARM,&motor2,ROBOARM_SMALLARM_GEAR,rotation);
         smallARM.length = ROBOARM_SMALLARM_LENGTH;
+        Display_Logged("Binding small arm...\n");
 
         /*上下关节参数绑定与初始化*/
         roboJoint_MotorBinding(&upDownJoint,&motor3,1,line);
+        Display_Logged("Binding up/down joint...\n");
         upDownJoint.workspace_max = 283;
         upDownJoint.workspace_min = 60;
 
         /*旋转关节参数绑定与初始化*/
         roboJoint_MotorBinding(&rotationJoint,&motor4,ROBOARM_ROTATION_GEAR,rotation);
-
+        Display_Logged("Binding rotation joint...\n");
 
         /*限位开关初始化*/
         Robot_stopSwitchInit();
+        Display_Logged("Init stop switch...\n");
 
         /*夹爪初始化*/
         Robot_clampJawInit();
+        Display_Logged("Init clamp jaw...\n");
 
         /*整体向上移动，获得绝对高度*/
         //stepMotor_SpeedExecute(upDownJoint.motor,ROBOARM_UP_DIR,5,200);
 
         CLAMP_JAW_RELEASE();
+        Display_Logged("robot Init done!\n");
     }
 }
 
@@ -416,3 +427,7 @@ void EXTI9_5_IRQHandler(void)
 		EXTI_ClearITPendingBit(EXTI_Line6);					//清除中断标志位
 	}
 }
+
+/************************************************************
+*						End of File
+************************************************************/

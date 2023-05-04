@@ -24,3 +24,7 @@ stepMotorClass* stepMotor_getbyInfo(stepMotorListType* pList, uint16_t id);
 int stepMotorList_DeInit(stepMotorListType** pList);
 
 #endif
+
+/************************************************************
+*						End of File
+************************************************************/

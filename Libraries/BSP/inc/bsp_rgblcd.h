@@ -8,6 +8,7 @@
 #ifndef __BSP_RGBLCD_H__
 #define __BSP_RGBLCD_H__
 
+#include <stdbool.h>
 #include "system.h"
 
 #ifdef __cplusplus
@@ -28,10 +29,14 @@ extern "C" {
 
 #define LCD_DMA_BUF_MAX			65535
 /************************************************************
-*				定义LCD屏幕的长宽像素域
+*				定义LCD屏幕的长宽像素域与扫描方式
 ************************************************************/
 #define LCD_W					128
 #define LCD_H					128
+
+#define LCD_FULLSCREEN			0,0,LCD_W,LCD_H
+
+#define LCD_SCANMODE			2
 
 /************************************************************
 *		定义LCD屏幕的接口引脚为(软/硬)件控制模式

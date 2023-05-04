@@ -56,6 +56,8 @@ void serialDebugInit(void)
     USART_InitTypeDef   USART_InitStruct;
     GPIO_InitTypeDef    GPIO_InitStruct;
 
+    Display_Logged("Init serial_dbg...\n");
+
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD,ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART5,ENABLE);
 
@@ -78,4 +80,9 @@ void serialDebugInit(void)
     USART_Init(TTYS_DEBUG,&USART_InitStruct);
 
     USART_Cmd(TTYS_DEBUG,ENABLE);
+    Display_Logged("Serial_dbg init done!\n");
 }
+
+/************************************************************
+*						End of File
+************************************************************/
