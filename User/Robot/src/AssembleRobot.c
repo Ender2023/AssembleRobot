@@ -1,6 +1,7 @@
 #include <math.h>
-#include "bsp_exti.h"
 #include <stdbool.h>
+#include "bsp_exti.h"
+#include "bsp_delay.h"
 #include "AssembleRobot.h"
 
 /*机器人初始化标志位*/
@@ -28,7 +29,7 @@ void Robot_Init(void)
         stepMotorInitStruct.CTRL_MODE = SOFT_CTRL;
 
         stepMotorInitStruct.IO.addr = 1;
-        stepMotorInitStruct.IO.ttySx = ttyS1;
+        stepMotorInitStruct.IO.ttySx = ttyS2;
         stepMotorInitStruct.param.DEG = 1.8f;
         stepMotorInitStruct.param.dir = dir_pos;
         stepMotorInitStruct.param.division = 16;
@@ -79,7 +80,7 @@ void Robot_Init(void)
         /*整体向上移动，获得绝对高度*/
         //stepMotor_SpeedExecute(upDownJoint.motor,ROBOARM_UP_DIR,5,200);
 
-        CLAMP_JAW_RELEASE();
+        //Robot_clampJaw_Catch(false);
         Display_Logged("robot Init done!\n");
     }
 }
@@ -113,20 +114,17 @@ static void Robot_clampJawInit(void)
     /*时基*/
     TIM_TimeBaseInitStruct.TIM_ClockDivision = TIM_CKD_DIV1;
     TIM_TimeBaseInitStruct.TIM_CounterMode = TIM_CounterMode_Up;
-    TIM_TimeBaseInitStruct.TIM_Period = ( 20000 -1 );
-    TIM_TimeBaseInitStruct.TIM_Prescaler = ( 72 - 1 );
+    TIM_TimeBaseInitStruct.TIM_Period = ( CLAMP_JAW_TIMER_PERIOD -1 );
+    TIM_TimeBaseInitStruct.TIM_Prescaler = ( CLAMP_JAW_TIMER_PRESCALER - 1 );
     TIM_TimeBaseInitStruct.TIM_RepetitionCounter = 0;
-    TIM_TimeBaseInit(TIM4,&TIM_TimeBaseInitStruct); 
+    TIM_TimeBaseInit(CLAMP_JAW_TIMER,&TIM_TimeBaseInitStruct); 
 
     /*输出通道配置*/
     TIM_OCInitStruct.TIM_OCMode = TIM_OCMode_PWM1;
     TIM_OCInitStruct.TIM_OCPolarity = TIM_OCPolarity_High;
     TIM_OCInitStruct.TIM_OutputState = TIM_OutputState_Enable;
     TIM_OCInitStruct.TIM_Pulse = ( 1000 - 1 );
-    TIM_OC1Init(TIM4,&TIM_OCInitStruct);
-
-    /*使能*/
-    TIM_Cmd(TIM4,ENABLE);
+    TIM_OC1Init(CLAMP_JAW_TIMER,&TIM_OCInitStruct);
 }
 
 /**
@@ -366,7 +364,6 @@ int roboJoint_Absolute_LineExecute(robot_Joint * roboJoint,float distance,float 
     }
 }
 
-
 /**
  * @brief:  机器人运动学逆解
  * @param:  x
@@ -397,6 +394,72 @@ int robo_InverseMotion(float x,float y,float z,float speed,uint8_t acceleratre)
     roboJoint_Absolute_LineExecute(&upDownJoint,z,speed,acceleratre);
 
     return 0;
+}
+
+/**
+ * @brief:  夹抓使能/失能控制
+ * @param:  NewState:   使能状态
+ *          ENABLE:     夹抓使能
+ *          DISABLE:    夹抓失能
+ * @retval: None
+*/
+void Robot_ClampJawCmd(FunctionalState NewState)
+{
+    if(NewState)
+    {
+        CLAMP_JAW_TIMER->CR1 |= TIM_CR1_CEN;
+    }
+    else
+    {
+        CLAMP_JAW_TIMER->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN));
+    }
+}
+
+/**
+ * @brief:  机械夹抓夹紧
+ * @param:  state:      夹紧状态
+ *          true:       夹抓夹紧
+ *          false:      夹抓松开
+ * @retval: None
+*/
+void Robot_clampJaw_Catch(bool state)
+{
+    if(state)
+    {
+        CLAMP_JAW_CATCH();
+        Robot_ClampJawCmd(ENABLE);
+        Display_Logged("Clamp jaw Catch!\n");
+    }
+    else
+    {
+        CLAMP_JAW_RELEASE();
+        Robot_ClampJawCmd(ENABLE);
+        Display_Logged("Clamp jaw Release!\n");
+    }
+}
+
+/**
+ * @brief:  机械夹抓松开
+ * @param:  state:      夹紧状态
+ *          true:       夹抓松开
+ *          false:      夹抓抓紧
+ * @retval: None
+*/
+void Robot_clampJaw_Release(bool state)
+{
+    if(state)
+    {
+        CLAMP_JAW_RELEASE();
+        Robot_ClampJawCmd(ENABLE);
+        Display_Logged("Clamp jaw Release!\n");
+    }
+    else
+    {
+        CLAMP_JAW_CATCH();
+        Robot_ClampJawCmd(ENABLE);
+        Display_Logged("Clamp jaw Catch!\n");
+
+    }
 }
 
 /**

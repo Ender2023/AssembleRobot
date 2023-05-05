@@ -12,10 +12,11 @@ void Keys_Init(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD,ENABLE);
 
 	/*共有特征*/
-	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IPD;
 	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
 
 	/*KEY1*/
+	KEY1.name = "KEY1";
 	KEY1.PORT = KEY1_PORT;
 	KEY1.Pin = KEY1_PIN;
 	KEY1.Valid_Level = KEY1_VALID;
@@ -27,6 +28,7 @@ void Keys_Init(void)
 	GPIO_Init(KEY1_PORT,&GPIO_InitStruct);
 
 	/*KEY2*/
+	KEY2.name = "KEY2";
 	KEY2.PORT = KEY2_PORT;
 	KEY2.Pin = KEY2_PIN;
 	KEY2.Valid_Level = KEY2_VALID;
@@ -38,6 +40,7 @@ void Keys_Init(void)
 	GPIO_Init(KEY2_PORT,&GPIO_InitStruct);
 
 	/*KEY3*/
+	KEY3.name = "KEY3";
 	KEY3.PORT = KEY3_PORT;
 	KEY3.Pin = KEY3_PIN;
 	KEY3.Valid_Level = KEY3_VALID;
@@ -49,6 +52,7 @@ void Keys_Init(void)
 	GPIO_Init(KEY3_PORT,&GPIO_InitStruct);
 
 	/*KEY4*/
+	KEY4.name = "KEY4";
 	KEY4.PORT = KEY4_PORT;
 	KEY4.Pin = KEY4_PIN;
 	KEY4.Valid_Level = KEY4_VALID;
@@ -58,6 +62,8 @@ void Keys_Init(void)
 
 	GPIO_InitStruct.GPIO_Pin = KEY4_PIN;
 	GPIO_Init(KEY4_PORT,&GPIO_InitStruct);
+
+	//Keys_EventsInit();
 }
 
 /*********************************************************
@@ -98,12 +104,13 @@ int8_t Update_Keys_State(Key_Class * KEY)
 			{
 				if(++ KEY->Wait_ctr >= KEY->Pressed_Threshold)	//消抖完成
 				{
-					KEY->STA=KEY_STA_PRESSED;					//进入按下状态
+					KEY->STA = KEY_STA_PRESSED;					//进入按下状态
+					Keys_PressedEventHandler(KEY);				//执行按键按下回调函数
 					break;
 				}
 				else
 				{
-					KEY->STA=KEY_STA_WAITTING;					//仍处于等待状态
+					KEY->STA = KEY_STA_WAITTING;				//仍处于等待状态
 					break;
 				}
 			}
@@ -117,17 +124,22 @@ int8_t Update_Keys_State(Key_Class * KEY)
 			{
 				if(++ KEY->Wait_ctr >= KEY->LPressed_Threshold)	//长按完成
 				{
-					KEY->STA=KEY_STA_LPRESSED;					//进入长按状态
+					KEY->STA = KEY_STA_LPRESSED;				//进入长按状态
+					Keys_LPressedEventHandler(KEY);				//执行按键长按回调函数
 					break;
 				}
 				else
 				{
-					KEY->STA=KEY_STA_PRESSED;					//视作按下
+					KEY->STA = KEY_STA_PRESSED;					//视作按下
+					Keys_PressedEventHandler(KEY);				//执行按键按下回调函数
 					break;
 				}
 			}
 			else
+			{
+				Keys_ReleasedEventHandler(KEY);
 				goto RELEASED;									//视作按下结束
+			}
 		}
 
 		case KEY_STA_LPRESSED :
@@ -136,33 +148,42 @@ int8_t Update_Keys_State(Key_Class * KEY)
 			{
 				if(++ KEY->Wait_ctr >= KEY->LLPressed_Threshold)//长按完成
 				{
-					KEY->STA=KEY_STA_LLPRESSED;					//进入超长按状态
+					KEY->STA = KEY_STA_LLPRESSED;				//进入超长按状态
+					Keys_LLPressedEventHandler(KEY);			//执行按键超长按回调函数
 					break;
 				}
 				else
 				{
-					KEY->STA=KEY_STA_LPRESSED;					//视作长按
+					KEY->STA = KEY_STA_LPRESSED;				//视作长按
+					Keys_LPressedEventHandler(KEY);				//执行按键长按回调函数
 					break;
 				}
 			}
 			else
-				goto RELEASED;									//视作长按结束
+			{
+				Keys_ReleasedEventHandler(KEY);
+				goto RELEASED;									//视作长按下结束
+			}
 		}
 
 		case KEY_STA_LLPRESSED :
 		{
 			if( KEY_GetPinValue(KEY) == KEY->Valid_Level )		//验证按键仍处于有效电平
 			{
-					KEY->STA=KEY_STA_LLPRESSED;					//仍然处于超长按
+					KEY->STA = KEY_STA_LLPRESSED;				//仍然处于超长按
+					Keys_LLPressedEventHandler(KEY);			//执行按键超长按回调函数
 					break;
 			}
 			else
-				goto RELEASED;									//视作超长按结束
+			{
+				Keys_ReleasedEventHandler(KEY);
+				goto RELEASED;									//视作超长按下结束
+			}
 		}
 
 		case KEY_STA_FORBIDEN :
 		{
-			KEY->STA=KEY_STA_FORBIDEN;							//视为禁用
+			KEY->STA = KEY_STA_FORBIDEN;						//视为禁用
 			/*解除按键禁用*/
 			if( KEY_GetPinValue(KEY) == KEY_STA_RELEASED )
 			{
@@ -181,6 +202,46 @@ RELEASED:
 		KEY->STA = KEY_STA_RELEASED;
 		KEY->Wait_ctr = 0;
 		return KEY_STA_RELEASED;
+}
+
+/**
+ * @brief:按键按下事件处理函数
+ * @param: KEY：按键对象
+ * @retval:	None
+*/
+__WEAK void Keys_PressedEventHandler(Key_Class * KEY)
+{
+
+}
+
+/**
+ * @brief:按键长按事件处理函数
+ * @param: KEY：按键对象
+ * @retval:	None
+*/
+__WEAK void Keys_LPressedEventHandler(Key_Class * KEY)
+{
+
+}
+
+/**
+ * @brief:按键超长按事件处理函数
+ * @param: KEY：按键对象
+ * @retval:	None
+*/
+__WEAK void Keys_LLPressedEventHandler(Key_Class * KEY)
+{
+
+}
+
+/**
+ * @brief:按键松手事件处理函数
+ * @param: KEY：按键对象
+ * @retval:	None
+*/
+__WEAK void Keys_ReleasedEventHandler(Key_Class * KEY)
+{
+
 }
 
 /************************************************************

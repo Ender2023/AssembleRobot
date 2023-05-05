@@ -1,7 +1,7 @@
 #ifndef __DEBUG_GPIO_H
 #define __DEBUG_GPIO_H
 
-#include "system.h"
+#include "debug.h"
 
 void Debug_GPIOInit(void);
 

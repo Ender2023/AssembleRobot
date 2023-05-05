@@ -10,9 +10,9 @@
 #define DISPLAY_FIFO_COL    32
 
 extern char LCD_DispFIFO[DISPLAY_FIFO_ROW][DISPLAY_FIFO_COL];
-extern uint8_t LOG_row_ctr;
 
 void Display_Init(void);
+void Display_LogReset(void);
 void Display_Logged(const char *fmt,...);
 
 #endif

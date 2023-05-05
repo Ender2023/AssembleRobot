@@ -6,7 +6,7 @@
 /*打印缓存*/
 char LCD_LOG_FIFO[DISPLAY_FIFO_ROW][DISPLAY_FIFO_COL];
 
-uint8_t LOG_row_ctr = 0;
+static uint8_t LOG_row_ctr = 0;
 
 /**
  * @brief:显示器初始化
@@ -15,6 +15,17 @@ __inline void Display_Init(void)
 {
     LCD_Init();
 	Display_Logged("LCD Init done!\n");
+}
+
+/**
+ * @breif:	清空记录输出信息，重新开始打印
+*/
+void Display_LogReset(void)
+{
+	/*清空记录条数*/
+	LOG_row_ctr = 0;
+	/*重设打印模式*/
+	LCD_Set_Printfmt(0,0,LCD_COLOR_WHITE,LCD_COLOR_BLACK,12,false);
 }
 
 /**
@@ -33,8 +44,6 @@ void Display_Logged(const char *fmt,...)
 
 	if(LOG_row_ctr < DISPLAY_FIFO_ROW)
 	{
-		/*重设打印模式*/
-        LCD_Set_Printfmt(0,0,LCD_COLOR_WHITE,LCD_COLOR_BLACK,12,false);
         /*压入队列*/
 		strcpy(&LCD_LOG_FIFO[LOG_row_ctr][0],tmp_buf);
 		LCD_Printf("%s",LCD_LOG_FIFO[LOG_row_ctr]);

@@ -8,39 +8,45 @@ extern "C" {
 #include "system.h"
 
 /************************************************************
+*					按键状态切换中断
+************************************************************/
+#define KEY_EXTI_LINEX				EXTI_Line0
+#define KEY_IRQHANDLER				EXTI0_IRQHandler
+
+/************************************************************
 *						按键引脚分布
 ************************************************************/
 /*KEY1*/
 #define KEY1_PORT					GPIOD
 #define KEY1_PIN					GPIO_Pin_3
 #define KEY1_VALID					1
-#define KEY1_PRESSED_THRESHOLD		2
-#define KEY1_LPRESSED_THRESHOLD		600+2
-#define KEY1_LLPRESSED_THRESHOLD	1000+600+2
+#define KEY1_PRESSED_THRESHOLD		1
+#define KEY1_LPRESSED_THRESHOLD		20 + KEY1_PRESSED_THRESHOLD
+#define KEY1_LLPRESSED_THRESHOLD	40 + KEY1_LPRESSED_THRESHOLD
 
 /*KEY2*/
 #define KEY2_PORT					GPIOD
 #define KEY2_PIN					GPIO_Pin_4
 #define KEY2_VALID					1
-#define KEY2_PRESSED_THRESHOLD		2
-#define KEY2_LPRESSED_THRESHOLD		600+2
-#define KEY2_LLPRESSED_THRESHOLD	1000+600+2
+#define KEY2_PRESSED_THRESHOLD		1
+#define KEY2_LPRESSED_THRESHOLD		20 + KEY2_PRESSED_THRESHOLD
+#define KEY2_LLPRESSED_THRESHOLD	40 + KEY2_LPRESSED_THRESHOLD
 
 /*KEY3*/
 #define KEY3_PORT					GPIOD
 #define KEY3_PIN					GPIO_Pin_5
 #define KEY3_VALID					1
-#define KEY3_PRESSED_THRESHOLD		2
-#define KEY3_LPRESSED_THRESHOLD		600+2
-#define KEY3_LLPRESSED_THRESHOLD	1000+600+2
+#define KEY3_PRESSED_THRESHOLD		1
+#define KEY3_LPRESSED_THRESHOLD		20 + KEY3_PRESSED_THRESHOLD
+#define KEY3_LLPRESSED_THRESHOLD	40 + KEY3_LPRESSED_THRESHOLD
 
 /*KEY4*/
 #define KEY4_PORT					GPIOD
 #define KEY4_PIN					GPIO_Pin_6
 #define KEY4_VALID					1
-#define KEY4_PRESSED_THRESHOLD		2
-#define KEY4_LPRESSED_THRESHOLD		600+2
-#define KEY4_LLPRESSED_THRESHOLD	1000+600+2
+#define KEY4_PRESSED_THRESHOLD		1
+#define KEY4_LPRESSED_THRESHOLD		20 + KEY4_PRESSED_THRESHOLD
+#define KEY4_LLPRESSED_THRESHOLD	40 + KEY4_LPRESSED_THRESHOLD
 
 /************************************************************
 *					按键状态机相关
@@ -58,6 +64,7 @@ typedef enum
 /*定义按键类*/
 typedef struct
 {
+	const char * 	name;					//名称
 	enum_KEY_STA	STA;					//记录按键当前的状态
 
 	uint8_t			Valid_Level;			//按键的有效触发电平
@@ -69,6 +76,7 @@ typedef struct
 	uint16_t		LLPressed_Threshold;	//超长按阈值
 	uint16_t		Wait_ctr;				//静默计数器
 
+
 }Key_Class;
 
 /************************************************************
@@ -77,6 +85,10 @@ typedef struct
 void Keys_Init(void);
 uint8_t KEY_GetPinValue(Key_Class * KEY);
 int8_t Update_Keys_State(Key_Class * KEY);
+void Keys_PressedEventHandler(Key_Class * KEY);
+void Keys_LPressedEventHandler(Key_Class * KEY);
+void Keys_LLPressedEventHandler(Key_Class * KEY);
+void Keys_ReleasedEventHandler(Key_Class * KEY);
 
 extern Key_Class KEY1,KEY2,KEY3,KEY4;
 

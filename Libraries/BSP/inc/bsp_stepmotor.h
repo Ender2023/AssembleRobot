@@ -13,9 +13,9 @@
 #define STEP_MOTOR_TIM_EVENTHANDLER         TIM2_IRQHandler         //步进电机定时器中断事件回调函数
 
 /*软件串口控制*/
-#define STEP_MOTOR_TTYSX_BUS                USART1                  //步进电机串口总线对应的实际硬件资源
+#define STEP_MOTOR_TTYSX_BUS                USART2                  //步进电机串口总线对应的实际硬件资源
 #define STEP_MOTOR_TTYSX_BUS_BUADRATE       38400                   //由串口总线带动的串口波特率大小
-#define STEP_MOTOR_TTYSX_BUS_IRQ_REGISTER   USART1_IRQHandler       //向内核注册步进电机串口中断回调函数
+#define STEP_MOTOR_TTYSX_BUS_IRQHALDLER     USART2_IRQHandler       //向内核注册步进电机串口中断回调函数
 
 #define STEP_MOTOR_SOFT_SPEED_MAX           1279                    //步进电机最大速度量化值
 

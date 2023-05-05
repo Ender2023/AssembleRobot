@@ -5,32 +5,37 @@
 #include "bsp_stepmotor.h"
 
 /*齿数比*/
-#define ROBOARM_BIGARM_GEAR     20.0f
-#define ROBOARM_SMALLARM_GEAR   16.25f
-#define ROBOARM_ROTATION_GEAR   4.65f
+#define ROBOARM_BIGARM_GEAR         20.0f
+#define ROBOARM_SMALLARM_GEAR       16.25f
+#define ROBOARM_ROTATION_GEAR       4.65f
 
 /*臂长*/
-#define ROBOARM_BIGARM_LENGTH   228.0f
-#define ROBOARM_SMALLARM_LENGTH 144.0f
+#define ROBOARM_BIGARM_LENGTH       228.0f
+#define ROBOARM_SMALLARM_LENGTH     144.0f
 
 /*螺距*/
-#define ROBOARM_HELICAL_PITCH   2
-#define ROBOARM_UP_DIR          dir_neg
-#define ROBOARM_DOWN_DIR        dir_pos
+#define ROBOARM_HELICAL_PITCH       2
+#define ROBOARM_UP_DIR              dir_neg
+#define ROBOARM_DOWN_DIR            dir_pos
 
 /*夹抓控制*/
-#define	CLAMP_JAW_SPIN_MIN	    500.0f
-#define	CLAMP_JAW_SPIN_MAX		2500.0f
+#define	CLAMP_JAW_TIMER				TIM4
+#define CLAMP_JAW_TIMER_USE_PERIPH	RCC_APB1Periph_TIM4
+#define CLAMP_JAW_TIMER_PRESCALER	72
+#define CLAMP_JAW_TIMER_PERIOD		20000
 
-#define	CLAMP_JAW_MAX_ANGLE		180.0f
+#define	CLAMP_JAW_SPIN_MIN	        500.0f
+#define	CLAMP_JAW_SPIN_MAX		    2500.0f
 
-#define	SCLAMP_JAW_K		    ( ( CLAMP_JAW_SPIN_MAX - CLAMP_JAW_SPIN_MIN ) / CLAMP_JAW_MAX_ANGLE )
-#define	CLAMP_JAW_B				CLAMP_JAW_SPIN_MIN
+#define	CLAMP_JAW_MAX_ANGLE		    180.0f
 
-#define	CLAMP_JAW_SetPWM(x)     TIM4->CCR1 = ( (uint16_t) ( SCLAMP_JAW_K * x + CLAMP_JAW_B ) ) - 1
+#define	SCLAMP_JAW_K		        ( ( CLAMP_JAW_SPIN_MAX - CLAMP_JAW_SPIN_MIN ) / CLAMP_JAW_MAX_ANGLE )
+#define	CLAMP_JAW_B				    CLAMP_JAW_SPIN_MIN
 
-#define CLAMP_JAW_CATCH()       CLAMP_JAW_SetPWM(110);Display_Logged("Clamp jaw Catch!\n")
-#define CLAMP_JAW_RELEASE()     CLAMP_JAW_SetPWM(30);Display_Logged("Clamp jaw Release!\n")
+#define	CLAMP_JAW_SetPWM(x)         TIM4->CCR1 = ( ( (uint16_t) ( SCLAMP_JAW_K * x + CLAMP_JAW_B ) ) - 1 )
+
+#define CLAMP_JAW_CATCH()           CLAMP_JAW_SetPWM(90)
+#define CLAMP_JAW_RELEASE()         CLAMP_JAW_SetPWM(0)
 
 /*机械手运动方式*/
 typedef enum{rotation = 0,line}roboARM_Movetype;
@@ -60,6 +65,9 @@ int roboJoint_Relative_LineExecute(robot_Joint * roboJoint,float distance,stepMo
 int roboJoint_Absolute_AngleExecute(robot_Joint * roboJoint,float angle,float speed,uint8_t acceleratre);
 int roboJoint_Absolute_LineExecute(robot_Joint * roboJoint,float distance,float speed,uint8_t acceleratre);
 int robo_InverseMotion(float x,float y,float z,float speed,uint8_t acceleratre);
+void Robot_clampJaw_Catch(bool state);
+void Robot_clampJaw_Release(bool state);
+void Robot_ClampJawCmd(FunctionalState NewState);
 
 
 #endif

@@ -5,10 +5,10 @@
 */
 void RF_Init(void)
 {
-    nRf24L01_Init();
     Display_Logged("Init RF...\n");
+    nRf24L01_Init();
     
-    if(nRf24L01_ReadREG(RF_CH) == 0)
+    if(nRf24L01_ReadREG(RF_CH) == 0xff)
     {
         Display_Logged("RF init failed!\n");
     }

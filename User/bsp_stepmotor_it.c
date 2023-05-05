@@ -83,7 +83,7 @@ void STEP_MOTOR_TIM_EVENTHANDLER(void)
 /**
  * @brief:  步进电机串口总线事件中断回调函数
 */
-void STEP_MOTOR_TTYSX_BUS_IRQ_REGISTER(void)
+void STEP_MOTOR_TTYSX_BUS_IRQHALDLER(void)
 {
     if(USART_GetITStatus(STEP_MOTOR_TTYSX_BUS,USART_IT_RXNE))
     {

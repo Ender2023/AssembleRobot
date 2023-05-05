@@ -27,6 +27,7 @@
 #include "stm32f10x.h"
 #include "display.h"
 
+
 /************************************************************
 *					    系统定时器
 ************************************************************/
@@ -38,7 +39,10 @@
 #define SYSTEM_TIMER_PERIOD			5000
 
 #define SYSTEM_TIMER_EVENTHANDLER	TIM6_IRQHandler
+
 #define OPTION_RESERVED_X5MS        200
+#define SYSTEM_TIMER_CAMERA         4
+#define SYSTEM_TIMER_KEY            2
 
 /************************************************************
 *						    调试
@@ -92,6 +96,7 @@
                                     else if( _angle < -180 )                             \
                                     {_angle += 360;}                                     \
                                 }
+
 
 extern uint8_t RandSeed;//随机刻种子
 

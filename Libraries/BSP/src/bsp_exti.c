@@ -54,9 +54,8 @@ void EXTI_gpioRegister(EXTI_GPIOType EXTI_IO,uint32_t GPIO_Pin_x,EXTITrigger_Typ
     EXTI_Init(&EXTI_InitStruct);
     
     /*NVIC≈‰÷√*/
-
     NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 7;
+    NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 6;
     NVIC_InitStruct.NVIC_IRQChannelSubPriority = 1;
 
     switch(GPIO_Pin_x)
