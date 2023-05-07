@@ -1,8 +1,20 @@
 #include <stdbool.h>
+#include <string.h>
+#include <stdlib.h>
 #include "Camera.h"
 #include "bsp_serial.h"
 
-USART_DataFrameType cameraSerialDataFrame;      //摄像头串口数据帧格式
+/*摄像头数据类型*/
+typedef struct 
+{
+    bool        isOK;                       //摄像头初始化完成标志位
+    char        shape;                      //识别到的物体形状
+    uint32_t    x_err;                      //x方向误差
+    uint32_t    y_err;                      //y方向误差
+}Camera_dataType;
+
+USART_DataFrameType cameraSerialDataFrame;  //摄像头串口数据帧格式
+Camera_dataType     cameraData;             //摄像头接收数据句柄
 
 /**
  * @brief:  摄像头串口初始化
@@ -13,7 +25,8 @@ void Camera_Init(void)
     GPIO_InitTypeDef    GPIO_InitStruct;
     NVIC_InitTypeDef    NVIC_InitStruct;
 
-    Display_Logged("Init camera...\n");
+    Display_Logged(LOG_RANK_INFO,"Init cam...\n");
+    cameraData.isOK = false;
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | TTYS_CAMERA_RCC,ENABLE);
 
@@ -48,7 +61,25 @@ void Camera_Init(void)
     NVIC_Init(&NVIC_InitStruct);
 
     USART_Cmd(TTYS_CAMERA,ENABLE);
-    Display_Logged("Camera init done!\n");
+    Display_Logged(LOG_RANK_WARNNING,"Cam:need ack...\n");
+
+}
+
+/**
+ * @brief:  查看摄像头状态
+ * @retval: true:   摄像头初始化完成
+ *          false:  尚未初始化完成
+*/
+bool Camera_getStatus(void)
+{
+    if( cameraData.isOK)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 /**
@@ -56,7 +87,7 @@ void Camera_Init(void)
 */
 void Camera_stopSample(void)
 {
-    serial_Printf(TTYS_CAMERA,"stop\n");
+    serial_Printf(TTYS_CAMERA,"X");
 }
 
 /**
@@ -64,7 +95,61 @@ void Camera_stopSample(void)
 */
 void Camera_startSample(void)
 {
-    serial_Printf(TTYS_CAMERA,"start\n");
+    serial_Printf(TTYS_CAMERA,"O");
+}
+
+/**
+ * @brief:  摄像头接收数据处理
+*/
+int Camera_dataHandle(void)
+{
+    /*裁剪用临时字符串*/
+    char tmp[CAMERA_TMPDATA_BUFSIZE];
+
+    /*拷贝原有字符串*/
+    strcpy(tmp,cameraSerialDataFrame.RX_BUF);
+
+    /*1.裁剪形状相关字符串*/
+	char * str = strtok(tmp,",");
+    /*判断是否为错误的数据接收格式*/
+    if( str == NULL )
+    {
+        goto ERR_HANDLE;
+    }
+
+    /*存储并打印*/
+    strcpy(&cameraData.shape,str);
+	Display_Logged(LOG_RANK_OK,"shape:%s\n", str);
+
+    /*2.裁剪x坐标偏差相关字符串*/
+    str = strtok(NULL, ",");
+    /*判断是否为错误的数据接收格式*/
+    if( str == NULL )
+    {
+        goto ERR_HANDLE;
+    }
+
+    /*存储并打印*/
+    cameraData.x_err = atoi(str);
+    Display_Logged(LOG_RANK_OK,"x_err:%d\n", cameraData.x_err);
+
+	/*3.裁剪y坐标偏差相关字符串*/
+    str = strtok(NULL, ",");
+    /*判断是否为错误的数据接收格式*/
+    if( str == NULL )
+    {
+        goto ERR_HANDLE;
+    }
+
+    /*存储并打印*/
+    cameraData.y_err = atoi(str);
+    Display_Logged(LOG_RANK_OK,"y_err:%d\n", cameraData.y_err);
+
+    return 0;
+
+ERR_HANDLE:
+        Display_Logged(LOG_RANK_ERROR,"Cam:Error data type!\n");
+        return -1;
 }
 
 /**
@@ -79,12 +164,41 @@ bool Camera_ttyS_BusIDLE(void)
     if(cameraSerialDataFrame.FrameBit.FrameFinishFlag)
     {
         /*打印日志信息*/
-        Display_Logged("Camera:%s\n",cameraSerialDataFrame.RX_BUF);
+        if(strlen(cameraSerialDataFrame.RX_BUF) > 25)
+        {
+            Display_Logged(LOG_RANK_ERROR,"Cam:%s\n","too long string!");
+        }
+        else
+        {
+            Display_Logged(LOG_RANK_INFO,"Cam:%s\n",cameraSerialDataFrame.RX_BUF);
+        }
+
+        /*若摄像头未初始化完成*/
+        if( cameraData.isOK == false )
+        {
+            /*如果为摄像头上电初始化信息*/
+            if( strcmp(cameraSerialDataFrame.RX_BUF,"OK") == 0 )
+            {
+                cameraData.isOK = true;
+            }
+            else
+            {
+                Display_Logged(LOG_RANK_ERROR,"Cam:error ack!\n");
+                Display_Logged(LOG_RANK_WARNNING,"[-]Cam:ack retry\n");
+            }
+        }
+        else
+        {
+            /*告知摄像头停止图像识别*/
+            Camera_stopSample();
+            /*处理数据*/
+            Camera_dataHandle();
+        }
 
         /*清空数据接收区*/
         cameraSerialDataFrame.FrameBit.FrameFinishFlag = 0;
         cameraSerialDataFrame.FrameBit.FrameCNT = 0;
-        
+
         return true;
     }
     else
@@ -95,7 +209,6 @@ bool Camera_ttyS_BusIDLE(void)
 
 /**
  * @brief:  摄像头串口接收事件回调函数
- * 
 */
 void CAMERA_TTYSX_BUS_IRQHANDLER(void)
 {
@@ -110,7 +223,7 @@ void CAMERA_TTYSX_BUS_IRQHANDLER(void)
         cameraSerialDataFrame.FrameBit.FrameFinishFlag = 1;		                        //代表总线进入空闲状态，数据接收完毕
         cameraSerialDataFrame.RX_BUF[cameraSerialDataFrame.FrameBit.FrameCNT] = '\0';   //清空结尾，避免多读
         USART_ReceiveData(TTYS_CAMERA);				                                    //由软件序列清除中断标志位(先读USART_SR，然后读USART_DR)
-        Camera_stopSample();                                                            //告知摄像头停止图像识别
+
         SYS_DEBUG("%s\n",cameraSerialDataFrame.RX_BUF);
     }
 }

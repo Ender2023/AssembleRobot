@@ -929,6 +929,16 @@ __inline void LCD_Set_Printfmt(uint16_t x,uint16_t y,uint16_t font_color,uint16_
 }
 
 /************************************************************
+*@brief:	LCD设置Printf格式，作为打印的前置函数
+*@param:	[I]font_color:		打印出的字体颜色
+*@retval:	None
+************************************************************/
+__inline void LCD_SetPrintColor(uint16_t font_color)
+{
+	LCD_STATUS.BIT.fmt_font_color=font_color;
+}
+
+/************************************************************
 *@brief:	适用于LCD的printf，功能与超级终端等同
 ************************************************************/
 void LCD_Printf(const char *fmt,...)
@@ -986,6 +996,12 @@ void LCD_Printf(const char *fmt,...)
 			{
 				LCD_STATUS.BIT.fmt_x = 0;
 				LCD_STATUS.BIT.fmt_y += LCD_STATUS.BIT.fmt_sizey;
+			}
+
+			/*超页检测*/
+			if(LCD_STATUS.BIT.fmt_y + LCD_STATUS.BIT.fmt_sizey > LCD_H)
+			{
+				return ;
 			}
 
 			/*ASCII显示*/

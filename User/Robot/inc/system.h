@@ -99,6 +99,7 @@
 
 
 extern uint8_t RandSeed;//随机刻种子
+extern bool SYSTEM_INIT_DONE;
 
 /**
  * DECLARE

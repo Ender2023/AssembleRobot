@@ -91,11 +91,15 @@ int8_t Update_Keys_State(Key_Class * KEY)
 		{
 			if( KEY_GetPinValue(KEY) == KEY->Valid_Level )		//检测按键当前电平状态
 			{
-				KEY->STA=KEY_STA_WAITTING;						//进入等待消抖状态
+				KEY->PreSTA = KEY_STA_RELEASED;
+				KEY->STA = KEY_STA_WAITTING;					//进入等待消抖状态
 				break;
 			}
 			else
+			{
+				KEY->PreSTA = KEY_STA_RELEASED;
 				goto RELEASED;									//视作释放
+			}
 		}
 
 		case KEY_STA_WAITTING :
@@ -104,18 +108,23 @@ int8_t Update_Keys_State(Key_Class * KEY)
 			{
 				if(++ KEY->Wait_ctr >= KEY->Pressed_Threshold)	//消抖完成
 				{
+					KEY->PreSTA = KEY_STA_WAITTING;
 					KEY->STA = KEY_STA_PRESSED;					//进入按下状态
 					Keys_PressedEventHandler(KEY);				//执行按键按下回调函数
 					break;
 				}
 				else
 				{
+					KEY->PreSTA = KEY_STA_WAITTING;
 					KEY->STA = KEY_STA_WAITTING;				//仍处于等待状态
 					break;
 				}
 			}
 			else
+			{
+				KEY->PreSTA = KEY_STA_WAITTING;
 				goto RELEASED;									//视作抖动
+			}
 		}
 
 		case KEY_STA_PRESSED :
@@ -124,12 +133,14 @@ int8_t Update_Keys_State(Key_Class * KEY)
 			{
 				if(++ KEY->Wait_ctr >= KEY->LPressed_Threshold)	//长按完成
 				{
+					KEY->PreSTA = KEY_STA_PRESSED;
 					KEY->STA = KEY_STA_LPRESSED;				//进入长按状态
 					Keys_LPressedEventHandler(KEY);				//执行按键长按回调函数
 					break;
 				}
 				else
 				{
+					KEY->PreSTA = KEY_STA_PRESSED;
 					KEY->STA = KEY_STA_PRESSED;					//视作按下
 					Keys_PressedEventHandler(KEY);				//执行按键按下回调函数
 					break;
@@ -137,6 +148,8 @@ int8_t Update_Keys_State(Key_Class * KEY)
 			}
 			else
 			{
+				KEY->PreSTA = KEY_STA_PRESSED;
+				KEY->STA = KEY_STA_RELEASED;
 				Keys_ReleasedEventHandler(KEY);
 				goto RELEASED;									//视作按下结束
 			}
@@ -148,12 +161,14 @@ int8_t Update_Keys_State(Key_Class * KEY)
 			{
 				if(++ KEY->Wait_ctr >= KEY->LLPressed_Threshold)//长按完成
 				{
+					KEY->PreSTA = KEY_STA_LPRESSED;
 					KEY->STA = KEY_STA_LLPRESSED;				//进入超长按状态
 					Keys_LLPressedEventHandler(KEY);			//执行按键超长按回调函数
 					break;
 				}
 				else
 				{
+					KEY->PreSTA = KEY_STA_LPRESSED;
 					KEY->STA = KEY_STA_LPRESSED;				//视作长按
 					Keys_LPressedEventHandler(KEY);				//执行按键长按回调函数
 					break;
@@ -161,6 +176,8 @@ int8_t Update_Keys_State(Key_Class * KEY)
 			}
 			else
 			{
+				KEY->PreSTA = KEY_STA_LPRESSED;
+				KEY->STA = KEY_STA_RELEASED;
 				Keys_ReleasedEventHandler(KEY);
 				goto RELEASED;									//视作长按下结束
 			}
@@ -170,12 +187,15 @@ int8_t Update_Keys_State(Key_Class * KEY)
 		{
 			if( KEY_GetPinValue(KEY) == KEY->Valid_Level )		//验证按键仍处于有效电平
 			{
+					KEY->PreSTA = KEY_STA_LLPRESSED;
 					KEY->STA = KEY_STA_LLPRESSED;				//仍然处于超长按
 					Keys_LLPressedEventHandler(KEY);			//执行按键超长按回调函数
 					break;
 			}
 			else
 			{
+				KEY->PreSTA = KEY_STA_LLPRESSED;
+				KEY->STA = KEY_STA_RELEASED;
 				Keys_ReleasedEventHandler(KEY);
 				goto RELEASED;									//视作超长按下结束
 			}
@@ -184,12 +204,6 @@ int8_t Update_Keys_State(Key_Class * KEY)
 		case KEY_STA_FORBIDEN :
 		{
 			KEY->STA = KEY_STA_FORBIDEN;						//视为禁用
-			/*解除按键禁用*/
-			if( KEY_GetPinValue(KEY) == KEY_STA_RELEASED )
-			{
-				KEY->STA = KEY_STA_RELEASED;
-			}
-
 			break;
 		}
 
@@ -202,6 +216,26 @@ RELEASED:
 		KEY->STA = KEY_STA_RELEASED;
 		KEY->Wait_ctr = 0;
 		return KEY_STA_RELEASED;
+}
+
+/**
+ * @brief:  禁用按键
+ * @param:  KEY：按键对象
+ * @retval: None
+*/
+void Keys_forbidden(Key_Class * KEY)
+{
+	KEY->STA = KEY_STA_FORBIDEN;
+}
+
+/**
+ * @brief:  解放按键
+ * @param:  KEY：按键对象
+ * @retval: None
+*/
+void Keys_free(Key_Class * KEY)
+{
+	KEY->STA = KEY_STA_RELEASED;
 }
 
 /**

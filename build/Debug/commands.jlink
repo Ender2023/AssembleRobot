@@ -1,0 +1,6 @@
+r
+halt
+loadfile "e:\MCU Development\32Bits MCU\STM32\F103\STM32F103ZE\AssembleRobot\build\Debug\EIDE_Template.hex"
+r
+go
+exit

@@ -9,7 +9,10 @@
 
 #define CAMERA_TTYSX_BUS_IRQHANDLER USART1_IRQHandler
 
+#define CAMERA_TMPDATA_BUFSIZE      32
+
 void Camera_Init(void);
+bool Camera_getStatus(void);
 void Camera_stopSample(void);
 void Camera_startSample(void);
 bool Camera_ttyS_BusIDLE(void);

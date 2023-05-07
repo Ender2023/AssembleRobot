@@ -248,6 +248,7 @@ void LCD_DrawRectangle(uint16_t x1,uint16_t y1,uint16_t x2,uint16_t y2,uint16_t 
 bool LCD_ShowChar(uint16_t x,uint16_t y,uint8_t Char,uint16_t font_color,uint16_t bg_color,uint8_t sizey,bool mode);
 bool LCD_ShowChinese(uint16_t x,uint16_t y,uint8_t *s,uint16_t fc,uint16_t bc,uint8_t sizey,uint8_t mode);
 void LCD_Set_Printfmt(uint16_t x,uint16_t y,uint16_t font_color,uint16_t bg_color,uint8_t sizey,bool mode);
+void LCD_SetPrintColor(uint16_t font_color);
 void LCD_Printf(const char *fmt,...);
 void LCD_ShowPicture(uint16_t x,uint16_t y,uint16_t x_dir_width,uint16_t y_dir_width,const uint8_t pic[]);
 

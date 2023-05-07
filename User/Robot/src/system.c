@@ -7,7 +7,9 @@
 #include "Key.h"
 #include "Camera.h"
 #include "turnplate.h"
+#include "UI.h"
 
+bool SYSTEM_INIT_DONE = false;
 uint8_t RandSeed = 0;//随机刻种子
 
 /**
@@ -18,7 +20,7 @@ static void System_Timer_Init(void)
 	TIM_TimeBaseInitTypeDef	TIM_TimeBaseInitStructure;
 	NVIC_InitTypeDef		NVIC_InitStructure;
 
-	Display_Logged("Init SYS_TIM...\n");
+	Display_Logged(LOG_RANK_INFO,"Init SYS_TIM...\n");
 	RCC_APB1PeriphClockCmd(SYSTEM_TIMER_USE_PERIPH,ENABLE);
 
 	/*定时器时基配置*/
@@ -41,7 +43,7 @@ static void System_Timer_Init(void)
 
 	/*开启定时器中断*/
 	TIM_ITConfig(SYSTEM_TIMER,TIM_IT_Update,ENABLE);
-	Display_Logged("SYS_TIM init done!\n");
+	Display_Logged(LOG_RANK_OK,"SYS_TIM init done!\n");
 }
 /**
  * @brief:  系统初始化
@@ -50,22 +52,49 @@ void System_Init(void)
 {
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_3);
     Display_Init();
-    serialDebugInit();
-	Camera_Init();
-    Robot_Init();
     RF_Init();
     Key_Init();
-	System_Timer_Init();
+    Robot_Init();
+    serialDebugInit();
+	Camera_Init();
 
 	/*开启系统定时器*/
-
-	Display_Logged("SYS_TIM start!\n");
-	delay_ms(500);
-	clr;
-	delay_ms(500);
-	Display_LogReset();
-	Display_Logged("AssembleRobot.\n");
+	System_Timer_Init();
 	TIM_Cmd(SYSTEM_TIMER,ENABLE);
+	Display_Logged(LOG_RANK_INFO,"SYS_TIM start!\n");
+	
+	/*等待摄像头应答*/
+	Display_Logged(LOG_RANK_WARNNING,"[-]Cam:waiting ack\n");
+    while(Camera_getStatus() == false)
+	{
+		LCD_ShowChar(24,LCD_STATUS.BIT.fmt_y - 12,'\\',LCD_COLOR_YELLOW,LCD_COLOR_BLACK,12,false);
+		delay_ms(500);
+		if(Camera_getStatus()){break;}
+		LCD_ShowChar(24,LCD_STATUS.BIT.fmt_y - 12,'|',LCD_COLOR_YELLOW,LCD_COLOR_BLACK,12,false);
+		delay_ms(500);
+		if(Camera_getStatus()){break;}
+		LCD_ShowChar(24,LCD_STATUS.BIT.fmt_y - 12,'/',LCD_COLOR_YELLOW,LCD_COLOR_BLACK,12,false);
+		delay_ms(500);
+		if(Camera_getStatus()){break;}	
+		LCD_ShowChar(24,LCD_STATUS.BIT.fmt_y - 12,'-',LCD_COLOR_YELLOW,LCD_COLOR_BLACK,12,false);
+		delay_ms(500);
+		if(Camera_getStatus()){break;}
+	}
+
+
+	Display_Logged(LOG_RANK_OK,"Cam init done!\n");
+	delay_ms(500);
+	UI_Setup();
+	Keys_free(&KEY1);
+	Keys_free(&KEY2);
+	Keys_free(&KEY3);
+	Keys_free(&KEY4);
+	Display_Logged(LOG_RANK_OK,"System init done!\n");
+	delay_ms(500);
+	SYSTEM_INIT_DONE = true;
+	clr;
+	/*进入主界面*/
+	UI_ShowPage(&homePage);
 }
 
 /**

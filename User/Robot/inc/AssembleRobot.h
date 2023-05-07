@@ -34,7 +34,7 @@
 
 #define	CLAMP_JAW_SetPWM(x)         TIM4->CCR1 = ( ( (uint16_t) ( SCLAMP_JAW_K * x + CLAMP_JAW_B ) ) - 1 )
 
-#define CLAMP_JAW_CATCH()           CLAMP_JAW_SetPWM(90)
+#define CLAMP_JAW_CATCH()           CLAMP_JAW_SetPWM(60)
 #define CLAMP_JAW_RELEASE()         CLAMP_JAW_SetPWM(0)
 
 /*机械手运动方式*/

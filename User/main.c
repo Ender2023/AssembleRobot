@@ -12,9 +12,7 @@ int main(void)
 {
     /*系统初始化*/
     System_Init();
-
-    Camera_startSample();
-
+    
     // FLASH_Unlock();
 
     // if(*(uint32_t *)(0x08000000 + 2 * 1024 * 255) == 1 )
