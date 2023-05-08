@@ -50,24 +50,25 @@ void Robot_Init(void)
         Display_Logged(LOG_RANK_INFO,"Init motor4...\n");
 
         /*大臂关节参数绑定与初始化*/
-        roboJoint_MotorBinding(&bigARM,&motor1,ROBOARM_BIGARM_GEAR,rotation);
+        bigARM.name = "bigArm";
         bigARM.length = ROBOARM_BIGARM_LENGTH;
-        Display_Logged(LOG_RANK_INFO,"Binding big arm...\n");
+        roboJoint_MotorBinding(&bigARM,&motor1,ROBOARM_BIGARM_GEAR,rotation);
 
         /*小臂关节参数绑定与初始化*/
-        roboJoint_MotorBinding(&smallARM,&motor2,ROBOARM_SMALLARM_GEAR,rotation);
+        smallARM.name = "smallArm";
         smallARM.length = ROBOARM_SMALLARM_LENGTH;
-        Display_Logged(LOG_RANK_INFO,"Binding small arm...\n");
+        roboJoint_MotorBinding(&smallARM,&motor2,ROBOARM_SMALLARM_GEAR,rotation);
 
         /*上下关节参数绑定与初始化*/
-        roboJoint_MotorBinding(&upDownJoint,&motor3,1,line);
-        Display_Logged(LOG_RANK_INFO,"Binding up/down joint...\n");
+
+        upDownJoint.name = "up/dowm joint";
         upDownJoint.workspace_max = 283;
         upDownJoint.workspace_min = 60;
+        roboJoint_MotorBinding(&upDownJoint,&motor3,1,line);
 
         /*旋转关节参数绑定与初始化*/
+        rotationJoint.name = "rotation joint";
         roboJoint_MotorBinding(&rotationJoint,&motor4,ROBOARM_ROTATION_GEAR,rotation);
-        Display_Logged(LOG_RANK_INFO,"Binding rotation joint...\n");
 
         /*限位开关初始化*/
         Robot_stopSwitchInit();
@@ -137,6 +138,7 @@ static void Robot_clampJawInit(void)
 */
 void roboJoint_MotorBinding(robot_Joint * roboJoint,stepMotorClass * motor,float gear,roboARM_Movetype moveType)
 {
+    Display_Logged(LOG_RANK_INFO,"Binding %s...\n",roboJoint->name);
     roboJoint->motor = motor;
     roboJoint->gear = gear;
     roboJoint->MoveType = moveType;
@@ -293,6 +295,7 @@ int roboJoint_Absolute_AngleExecute(robot_Joint * roboJoint,float angle,float sp
             /*更新记录的角度值*/
             roboJoint->angle += angle_err;
             angle_mapping(roboJoint->angle);
+            Display_Logged(LOG_RANK_WARNNING,"%s go to %.0f\n",roboJoint->name,roboJoint->angle);
             return 0;
         }
 
@@ -461,6 +464,31 @@ void Robot_clampJaw_Release(bool state)
 
     }
 }
+
+/**
+ * @brief:  机械夹抓紧紧抓取
+ * @param:  state:      夹紧状态
+ *          true:       夹抓紧抓
+ *          false:      夹抓松开
+ * @retval: None
+*/
+void Robot_clampJaw_Graspe(bool state)
+{
+    if(state)
+    {
+        CLAMP_JAW_GRASPED();
+        Robot_ClampJawCmd(ENABLE);
+        Display_Logged(LOG_RANK_WARNNING,"Clamp jaw Grasped!\n");
+    }
+    else
+    {
+        CLAMP_JAW_RELEASE();
+        Robot_ClampJawCmd(ENABLE);
+        Display_Logged(LOG_RANK_WARNNING,"Clamp jaw Release!\n");
+
+    }
+}
+
 
 /**
  * @brief:  机械手关节紧急停止

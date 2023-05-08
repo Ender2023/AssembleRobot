@@ -12,23 +12,11 @@ int main(void)
 {
     /*系统初始化*/
     System_Init();
-    
-    // FLASH_Unlock();
 
-    // if(*(uint32_t *)(0x08000000 + 2 * 1024 * 255) == 1 )
-	// {
-    //     Robot_clampJaw_Release(true);
-    //     FLASH_ErasePage(0x08000000 + 2 * 1024 * 255);
-	//     FLASH_ProgramWord(0x08000000 + 2 * 1024 * 255,0);
-    // }
-    // else
-    // {
-    //     Robot_clampJaw_Catch(true);
-    //     FLASH_ErasePage(0x08000000 + 2 * 1024 * 255);
-	//     FLASH_ProgramWord(0x08000000 + 2*1024*255,1);
-    // }
-	// FLASH_Lock();
-
+    // roboJoint_Absolute_AngleExecute(&bigARM,30,5,200);
+    // roboJoint_Absolute_AngleExecute(&smallARM,-180,5,200);
+    // roboJoint_Absolute_AngleExecute(&rotationJoint,30,5,200);
+    // roboJoint_Absolute_LineExecute(&upDownJoint,30,5,200);
     while(1);
 }
 

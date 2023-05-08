@@ -1,11 +1,14 @@
+#include "display.h"
 #include "relay.h"
 
 /**
  * @brief:  继电器控制引脚配置
 */
-void Relay_PinConfig(void)
+void Relay_Init(void)
 {
     GPIO_InitTypeDef  GPIO_InitStructure;
+
+    Display_Logged(LOG_RANK_INFO,"Init relay...\n");
 
 	RCC_APB2PeriphClockCmd(RELAY_CTRL_RCC_PERIPH, ENABLE);
 
@@ -13,6 +16,8 @@ void Relay_PinConfig(void)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(RELAY_CTRL_PORT, &GPIO_InitStructure);
+
+    Display_Logged(LOG_RANK_INFO,"Relay init done!\n");
     
     /*默认上电拉低*/
     RELAY_CTRL_PORT->BRR = RELAY_CTRL_PIN;

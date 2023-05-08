@@ -34,6 +34,7 @@
 
 #define	CLAMP_JAW_SetPWM(x)         TIM4->CCR1 = ( ( (uint16_t) ( SCLAMP_JAW_K * x + CLAMP_JAW_B ) ) - 1 )
 
+#define CLAMP_JAW_GRASPED()         CLAMP_JAW_SetPWM(100)
 #define CLAMP_JAW_CATCH()           CLAMP_JAW_SetPWM(60)
 #define CLAMP_JAW_RELEASE()         CLAMP_JAW_SetPWM(0)
 
@@ -43,6 +44,7 @@ typedef enum{rotation = 0,line}roboARM_Movetype;
 /*机械手关节对象*/
 typedef struct
 {
+    const char *        name;           //关节名称
     stepMotorClass *    motor;          //机械手臂占用的电机对象
     roboARM_Movetype    MoveType;       //该关节的运动方式
     float               gear;           //该关节的齿数比
@@ -66,6 +68,7 @@ int roboJoint_Absolute_AngleExecute(robot_Joint * roboJoint,float angle,float sp
 int roboJoint_Absolute_LineExecute(robot_Joint * roboJoint,float distance,float speed,uint8_t acceleratre);
 int robo_InverseMotion(float x,float y,float z,float speed,uint8_t acceleratre);
 void Robot_clampJaw_Catch(bool state);
+void Robot_clampJaw_Graspe(bool state);
 void Robot_clampJaw_Release(bool state);
 void Robot_ClampJawCmd(FunctionalState NewState);
 

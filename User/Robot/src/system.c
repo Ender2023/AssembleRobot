@@ -57,7 +57,7 @@ void System_Init(void)
     Robot_Init();
     serialDebugInit();
 	Camera_Init();
-
+	Relay_Init();
 	/*开启系统定时器*/
 	System_Timer_Init();
 	TIM_Cmd(SYSTEM_TIMER,ENABLE);

@@ -1,4 +1,0 @@
-arm-none-eabi-objcopy --update-section ER_IROM1="e:\MCU Development\32Bits MCU\STM32\F103\STM32F103ZE\AssembleRobot\build\Debug\EIDE_Template.bin" "e:\MCU Development\32Bits MCU\STM32\F103\STM32F103ZE\AssembleRobot\build\Debug\EIDE_Template.axf" "e:\MCU Development\32Bits MCU\STM32\F103\STM32F103ZE\AssembleRobot\build\Debug\EIDE_Template.elf"
-
-arm-none-eabi-objcopy: e:\MCU Development\32Bits MCU\STM32\F103\STM32F103ZE\AssembleRobot\build\Debug\EIDE_Template.elf: warning: allocated section `RW_IRAM1' not in segment
-
