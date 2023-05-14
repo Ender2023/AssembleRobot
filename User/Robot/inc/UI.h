@@ -9,7 +9,7 @@
 /*当前所处UI界面*/
 typedef enum{UI_homepage = 0,UI_debug,UI_info,UI_members,UI_debug_ClampJaw,
              UI_debug_Bigarm,UI_debug_Smallarm,UI_debug_UpDown,UI_debug_rotation,
-             UI_debug_Conveyer,UI_Message_Done,UI_Message_Input,
+             UI_debug_Turnplate,UI_debug_Conveyer,UI_Message_Done,UI_Message_Input,
              }UI_NAME;
 
 typedef struct
@@ -32,14 +32,20 @@ typedef struct
 /*页面对象声明*/
 extern UI_page  homePage,debugPage,infoPage,memberPage,
                 debugPage_ClampJaw,debugPage_Bigarm,debugPage_Smallarm,
-                debugPage_UpDown,debugPage_Rotation,debugPage_Conveyer;
+                debugPage_UpDown,debugPage_Rotation,debugPage_Conveyer,
+                debugPage_Turnplate;
 
 extern UI_NAME UI_routinue,UI_Pre_routinue;
 extern float value,value_highest,value_lowest;
 extern robot_Joint * tmp_joint;
 
+/*初始化*/
 void UI_Setup(void);
+
+/*绘图*/
 void UI_ShowPage(UI_page * page);
+
+/*消息框*/
 void UI_ShowMessage_done(const char * msg);
 void UI_ShowMessage_input(const char * msg,robot_Joint * joint);
 

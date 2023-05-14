@@ -40,9 +40,10 @@
 
 #define SYSTEM_TIMER_EVENTHANDLER	TIM6_IRQHandler
 
-#define OPTION_RESERVED_X5MS        200
-#define SYSTEM_TIMER_CAMERA         4
-#define SYSTEM_TIMER_KEY            2
+#define OS_TASK_NUM                 3
+#define OS_TIME_PIECE_CAMERA        20
+#define OS_TIME_PIECE_ROBOT_TASK    10
+#define OS_TIME_PIECE_KEY           2
 
 /************************************************************
 *						    调试
@@ -85,8 +86,8 @@
 #define max3(a,b,c)					( ( a > max2(b,c) ) ? ( a ) : max2(b,c) )
 #define min3(a,b,c)					( ( a < min2(b,c) ) ? ( a ) : min2(b,c) )
 
-#define clr	        				LCD_FillColor(LCD_FULLSCREEN,LCD_COLOR_BLACK);
-#define keyban(KEYX)				KEYX.STA=KEY_STA_FORBIDEN;
+#define clr	        				LCD_FillColor(LCD_FULLSCREEN,LCD_COLOR_BLACK)
+#define keyban(KEYX)				KEYX.STA = KEY_STA_FORBIDEN
 
 /*角度映射至-180° ~ +180°*/
 #define angle_mapping(_angle)    {                                                       \
@@ -105,8 +106,15 @@ extern bool SYSTEM_INIT_DONE;
  * DECLARE
 */
 
+/*初始化*/
 void System_Init(void);
+void SystemTimer_Cmd(FunctionalState NewState);
+
+/*入参断言*/
 void ASSERT_ERR(void * obj,int8_t code);
+
+/*任务调度器*/
+void OS_Scedule(void);
 
 #endif
 

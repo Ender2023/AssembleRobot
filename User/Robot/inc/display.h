@@ -5,7 +5,7 @@
 #include "bsp_rgblcd.h"
 
 /*定义系统最大记录条数*/
-#define DISPLAY_MAX_LOG_CNT 64
+#define DISPLAY_MAX_LOG_CNT 512
 /*定义显示队列最大行数*/
 #define DISPLAY_FIFO_ROW    7
 /*定义显示队列每行最大字节数*/

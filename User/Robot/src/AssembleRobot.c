@@ -3,9 +3,11 @@
 #include "bsp_exti.h"
 #include "bsp_delay.h"
 #include "AssembleRobot.h"
+#include "task.h"
 
 /*机器人初始化标志位*/
 bool robot_InitFlag = false;
+bool robot_HeightInit = false;
 
 /**
  * DECLARE
@@ -20,10 +22,11 @@ static void Robot_clampJawInit(void);
 */
 void Robot_Init(void)
 {
-    Display_Logged(LOG_RANK_INFO,"Init robot...\n");
     /*如果尚未初始化过机器手*/
     if( robot_InitFlag == false )
     {
+        Display_Logged(LOG_RANK_INFO,"Init robot...\n");
+
         stepMotorInitTypeDef stepMotorInitStruct;
 
         stepMotorInitStruct.CTRL_MODE = SOFT_CTRL;
@@ -60,7 +63,6 @@ void Robot_Init(void)
         roboJoint_MotorBinding(&smallARM,&motor2,ROBOARM_SMALLARM_GEAR,rotation);
 
         /*上下关节参数绑定与初始化*/
-
         upDownJoint.name = "up/dowm joint";
         upDownJoint.workspace_max = 283;
         upDownJoint.workspace_min = 60;
@@ -72,17 +74,27 @@ void Robot_Init(void)
 
         /*限位开关初始化*/
         Robot_stopSwitchInit();
-        Display_Logged(LOG_RANK_INFO,"Init stop switch...\n");
 
         /*夹爪初始化*/
         Robot_clampJawInit();
-        Display_Logged(LOG_RANK_INFO,"Init clamp jaw...\n");
 
-        /*整体向上移动，获得绝对高度*/
-        //stepMotor_SpeedExecute(upDownJoint.motor,ROBOARM_UP_DIR,5,200);
-
-        //Robot_clampJaw_Catch(false);
-        Display_Logged(LOG_RANK_OK,"robot Init done!\n");
+        /*判断是否需要向上移动以校准高度信息*/
+        if( STOPSWITCH_PORT->IDR & STOPSWITCH_PIN )
+        {
+            upDownJoint.distance = upDownJoint.workspace_max;
+            robot_HeightInit = true;
+            roboJoint_Relative_LineExecute(&upDownJoint,2,ROBOARM_DOWN_DIR,5,200);  //下降一部分，避免一直处于最高位
+            Display_Logged(LOG_RANK_OK,"Height has calibrated!\n");
+        }
+        else
+        {
+            /*整体向上移动，校准绝对高度*/
+            Display_Logged(LOG_RANK_WARNNING,"Getting abs height...\n");
+            stepMotor_SpeedExecute(upDownJoint.motor,ROBOARM_UP_DIR,8,200);
+        }
+    
+        /*创建任务*/
+        Robot_TaskInit();
     }
 }
 
@@ -91,8 +103,13 @@ void Robot_Init(void)
 */
 static void Robot_stopSwitchInit(void)
 {
+    Display_Logged(LOG_RANK_INFO,"Init stop switch...\n");
+
     /*最大高度限位*/
-    EXTI_gpioRegister(EXTI_IOD,GPIO_Pin_6,EXTI_Trigger_Rising);
+    EXTI_gpioRegister(EXTI_IOG,GPIO_Pin_5,EXTI_Trigger_Rising);
+
+    Display_Logged(LOG_RANK_OK,"Stop switch init done!\n");
+
 }
 
 /**
@@ -103,6 +120,8 @@ static void Robot_clampJawInit(void)
     GPIO_InitTypeDef GPIO_InitStruct;
     TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStruct;
     TIM_OCInitTypeDef TIM_OCInitStruct;
+
+    Display_Logged(LOG_RANK_INFO,"Init clamp jaw...\n");
 
     /*时钟*/
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4,ENABLE);
@@ -126,6 +145,9 @@ static void Robot_clampJawInit(void)
     TIM_OCInitStruct.TIM_OutputState = TIM_OutputState_Enable;
     TIM_OCInitStruct.TIM_Pulse = ( 1000 - 1 );
     TIM_OC1Init(CLAMP_JAW_TIMER,&TIM_OCInitStruct);
+
+    Display_Logged(LOG_RANK_OK,"Clamp jaw init done!\n");
+
 }
 
 /**
@@ -168,6 +190,8 @@ int roboJoint_Relative_AngleExecute(robot_Joint * roboJoint,float angle,stepMoto
         pulseCNT = ( angle / 360.0f ) * ( 360.0f / roboJoint->motor->Public.param.DEG ) * 
                    (roboJoint->motor->Public.param.division) * ( roboJoint->gear );
 
+	    SystemTimer_Cmd(DISABLE);//避免系统调度引发指令发送中断
+
         if( stepMotor_PulseExecute(roboJoint->motor,dir,speed,acceleratre,pulseCNT) == 0)
         {
             /*更新记录的角度值*/
@@ -182,8 +206,11 @@ int roboJoint_Relative_AngleExecute(robot_Joint * roboJoint,float angle,stepMoto
                 angle_mapping(roboJoint->angle);
             }
 
+            SystemTimer_Cmd(ENABLE);
             return 0;
         }
+
+        SystemTimer_Cmd(ENABLE);
 
         return -1;
     }
@@ -213,10 +240,15 @@ int roboJoint_Relative_LineExecute(robot_Joint * roboJoint,float distance,stepMo
         pulseCNT = ( distance / ROBOARM_HELICAL_PITCH ) * ( 360.0f / roboJoint->motor->Public.param.DEG ) 
                     * (roboJoint->motor->Public.param.division) * ( roboJoint->gear );
 
+	    SystemTimer_Cmd(DISABLE);//避免系统调度引发指令发送中断
+
         if( stepMotor_PulseExecute(roboJoint->motor,dir,speed,acceleratre,pulseCNT) == 0)
         {
+            SystemTimer_Cmd(ENABLE);
             return 0;
         }
+
+        SystemTimer_Cmd(ENABLE);
 
         return -1;
     }
@@ -233,7 +265,7 @@ int roboJoint_Relative_LineExecute(robot_Joint * roboJoint,float distance,stepMo
  * @param:  dir         要旋转的方向
  * @param:  speed       要达到的最大速度
  * @param:  accelerate  加速度
- * @retval: 0:正常退出       -1:引用了错误的控制模式
+ * @retval: 0:正常退出   1::当前位置已就位    -1:引用了错误的控制模式
 */
 int roboJoint_Absolute_AngleExecute(robot_Joint * roboJoint,float angle,float speed,uint8_t acceleratre)
 {
@@ -269,7 +301,7 @@ int roboJoint_Absolute_AngleExecute(robot_Joint * roboJoint,float angle,float sp
         }
         else
         {
-            angle_err = angle_solution2;
+            angle_err = angle_solution1;
         }
 
         /*确定旋转方向*/
@@ -283,22 +315,28 @@ int roboJoint_Absolute_AngleExecute(robot_Joint * roboJoint,float angle,float sp
         }
         else
         {
-            return 0;
+            return 1;
         }
 
         /*脉冲数 = 角度与圈数的对应关系 * 当前电机在该细分下转动一圈所需脉冲数 * 电机细分数 * 机械关节齿数比 */
         pulseCNT = ( angle_err / 360.0f ) * ( 360.0f / roboJoint->motor->Public.param.DEG ) * 
                    (roboJoint->motor->Public.param.division) * ( roboJoint->gear );
 
+//	    SystemTimer_Cmd(DISABLE);//避免系统调度引发指令发送中断
+
         if( stepMotor_PulseExecute(roboJoint->motor,dir,speed,acceleratre,pulseCNT) == 0)
         {
             /*更新记录的角度值*/
             roboJoint->angle += angle_err;
             angle_mapping(roboJoint->angle);
-            Display_Logged(LOG_RANK_WARNNING,"%s go to %.0f\n",roboJoint->name,roboJoint->angle);
+            Display_Logged(LOG_RANK_WARNNING,"%s to %.0f\n",roboJoint->name,roboJoint->angle);
+
+//           SystemTimer_Cmd(ENABLE);
+
             return 0;
         }
-
+        
+//        SystemTimer_Cmd(ENABLE);
         return -1;
     }
     else
@@ -313,10 +351,16 @@ int roboJoint_Absolute_AngleExecute(robot_Joint * roboJoint,float angle,float sp
  * @param:  distance      要走到的绝对距离(mm)
  * @param:  speed         要达到的最大速度
  * @param:  accelerate    加速度
- * @retval: 0:正常退出       -1:引用了错误的控制模式    -2:不合理的高度参数
+ * @retval: 0:正常退出     1:当前位置已就位  -1:引用了错误的控制模式    -2:不合理的高度参数     -3:当前已达最大高度
 */
 int roboJoint_Absolute_LineExecute(robot_Joint * roboJoint,float distance,float speed,uint8_t acceleratre)
 {
+    /*如果当前已达最大高度*/
+    if( (STOPSWITCH_PORT->IDR & STOPSWITCH_PIN) )
+    {
+        return -3;
+    }
+
     /*如果要移动到的高度大于最大高度*/
     if( distance > roboJoint->workspace_max || distance < roboJoint->workspace_min )
     {
@@ -344,20 +388,26 @@ int roboJoint_Absolute_LineExecute(robot_Joint * roboJoint,float distance,float 
         }
         else
         {
-            return 0;
+            return 1;
         }
 
         /*脉冲数 = 距离与螺杆导程的对应关系 * 当前电机在该细分下转动一圈所需脉冲数 * 电机细分数 * 机械关节齿数比 */
         pulseCNT = ( distance / ROBOARM_HELICAL_PITCH ) * ( 360.0f / roboJoint->motor->Public.param.DEG ) 
                     * (roboJoint->motor->Public.param.division) * ( roboJoint->gear );
 
+//	    SystemTimer_Cmd(DISABLE);//避免系统调度引发指令发送中断
+
         if( stepMotor_PulseExecute(roboJoint->motor,dir,speed,acceleratre,pulseCNT) == 0)
         {
             /*更新记录的高度值*/
             roboJoint->distance += distance;
+            Display_Logged(LOG_RANK_WARNNING,"%s to %.0f\n",roboJoint->name,roboJoint->distance);
+//            SystemTimer_Cmd(ENABLE);
 
             return 0;
         }
+
+//        SystemTimer_Cmd(ENABLE);
 
         return -1;
     }
@@ -489,6 +539,29 @@ void Robot_clampJaw_Graspe(bool state)
     }
 }
 
+/**
+ * @brief:  机械手抓取圆物件
+*/
+__inline void Robot_CatchCircle(void)
+{
+    Robot_clampJaw_Catch(true);
+}
+
+/**
+ * @brief:  机械手抓取方物件
+*/
+__inline void Robot_CtachRectangle(void)
+{
+    Robot_clampJaw_Catch(true);
+}
+
+/**
+ * @brief:  机械手抓取三角物件
+*/
+__inline void Robot_CatchTriangle(void)
+{
+    Robot_clampJaw_Graspe(true);
+}
 
 /**
  * @brief:  机械手关节紧急停止
@@ -498,6 +571,7 @@ void Robot_clampJaw_Graspe(bool state)
 static void roboJoint_UrgentSTOP(robot_Joint * roboJoint) 
 {
     stepMotor_SpeedExecute(roboJoint->motor,dir_neg,0,255);
+    
 }
 
 /**
@@ -505,17 +579,26 @@ static void roboJoint_UrgentSTOP(robot_Joint * roboJoint)
 */
 void EXTI9_5_IRQHandler(void)
 {
-    if(EXTI_GetITStatus(EXTI_Line6) == SET)
+    if(EXTI_GetITStatus(EXTI_Line5) == SET)
 	{
-		roboJoint_UrgentSTOP(&upDownJoint);
-
-        if( robot_InitFlag == false )
+        /*系统初始化完毕后*/
+        if( SYSTEM_INIT_DONE )
         {
-            upDownJoint.distance = upDownJoint.workspace_max;
+        	roboJoint_UrgentSTOP(&upDownJoint);                                     //令高度关节紧急停止    
+        }
+
+        /*高度关节初始化未完成*/
+        if( robot_HeightInit == false )
+        {
+	    	roboJoint_UrgentSTOP(&upDownJoint);                                     //令高度关节紧急停止
+            upDownJoint.distance = upDownJoint.workspace_max;	
+	        roboJoint_Relative_LineExecute(&upDownJoint,2,ROBOARM_DOWN_DIR,5,200);  //下降一部分，避免一直处于最高位
+            Display_Logged(LOG_RANK_OK,"Height calibrate done!\n");
+            robot_HeightInit = true;
             robot_InitFlag = true;
         }
 
-		EXTI_ClearITPendingBit(EXTI_Line6);					//清除中断标志位
+		EXTI_ClearITPendingBit(EXTI_Line5);					                        //清除中断标志位
 	}
 }
 

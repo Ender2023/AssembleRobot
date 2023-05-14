@@ -1,4 +1,5 @@
 #include <math.h>
+#include "display.h"
 #include "turnplate.h"
 
 static stepMotorClass motor_turnPlate;
@@ -36,6 +37,8 @@ static void Turnplate_PinConfig(void)
 */
 void Turnplate_Init(void)
 {
+    Display_Logged(LOG_RANK_INFO,"Init turnplate...\n");
+
     /*初始化容器池*/
 
     /*容器1*/
@@ -79,6 +82,8 @@ void Turnplate_Init(void)
 
     Turnplate_PinConfig();
     Turnplate_Cmd(ENABLE);
+
+    Display_Logged(LOG_RANK_OK,"Turnplate init done!\n");
 }
 
 /**
@@ -151,6 +156,9 @@ void Turnplate_toAngle(float angle)
 
     /*执行调度*/
     steoMotor_TaskExcute();
+
+    /*打印日志*/
+    Display_Logged(LOG_RANK_WARNNING,"Turnplate: to %.0f\n",angle);
 
     /*更新记录的角度值*/
     turnplate.angle += angle_err;

@@ -61,7 +61,16 @@ void Display_Logged(uint16_t rank,const char *fmt,...)
 			if( LOG_count < DISPLAY_FIFO_ROW )
 			{
 				LCD_SetPrintColor(LOG_WARNNING_RANK[LOG_count]);
-				LCD_Printf("%d %s",LOG_count,LCD_LOG_FIFO[LOG_count]);
+
+				/*上电初始化不打印日志序号*/
+				if(SYSTEM_INIT_DONE)
+				{
+					LCD_Printf("%d %s",LOG_count,LCD_LOG_FIFO[LOG_count]);
+				}
+				else
+				{
+					LCD_Printf("%s",LCD_LOG_FIFO[LOG_count]);
+				}
 			}
 			else
 			{
@@ -72,7 +81,16 @@ void Display_Logged(uint16_t rank,const char *fmt,...)
 				for( LOG_row_ctr = LOG_count - DISPLAY_FIFO_ROW + 1; LOG_row_ctr <= LOG_count ; LOG_row_ctr ++)
 				{
 					LCD_SetPrintColor(LOG_WARNNING_RANK[LOG_row_ctr]);
-					LCD_Printf("%d %s",LOG_row_ctr,LCD_LOG_FIFO[LOG_row_ctr]);
+
+					/*上电初始化不打印日志序号*/
+					if(SYSTEM_INIT_DONE)
+					{
+						LCD_Printf("%d %s",LOG_row_ctr,LCD_LOG_FIFO[LOG_row_ctr]);
+					}
+					else
+					{
+						LCD_Printf("%s",LCD_LOG_FIFO[LOG_row_ctr]);
+					}
 				}
 			}
 

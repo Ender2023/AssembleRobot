@@ -4,17 +4,9 @@
 #include "Camera.h"
 #include "bsp_serial.h"
 
-/*摄像头数据类型*/
-typedef struct 
-{
-    bool        isOK;                       //摄像头初始化完成标志位
-    char        shape;                      //识别到的物体形状
-    uint32_t    x_err;                      //x方向误差
-    uint32_t    y_err;                      //y方向误差
-}Camera_dataType;
-
-USART_DataFrameType cameraSerialDataFrame;  //摄像头串口数据帧格式
-Camera_dataType     cameraData;             //摄像头接收数据句柄
+USART_DataFrameType cameraSerialDataFrame;      //摄像头串口数据帧格式
+Camera_dataType cameraData;                     //摄像头接收数据句柄
+bool cameraValidData = false;                   //摄像头有效数据接收标志位
 
 /**
  * @brief:  摄像头串口初始化
@@ -62,7 +54,6 @@ void Camera_Init(void)
 
     USART_Cmd(TTYS_CAMERA,ENABLE);
     Display_Logged(LOG_RANK_WARNNING,"Cam:need ack...\n");
-
 }
 
 /**
@@ -100,6 +91,9 @@ void Camera_startSample(void)
 
 /**
  * @brief:  摄像头接收数据处理
+ * @param:  None
+ * @retval: -1:收到错误的数据格式
+ *          -2:收到错误的数据内容
 */
 int Camera_dataHandle(void)
 {
@@ -109,56 +103,111 @@ int Camera_dataHandle(void)
     /*拷贝原有字符串*/
     strcpy(tmp,cameraSerialDataFrame.RX_BUF);
 
+
     /*1.裁剪形状相关字符串*/
 	char * str = strtok(tmp,",");
     /*判断是否为错误的数据接收格式*/
     if( str == NULL )
     {
-        goto ERR_HANDLE;
+        goto ERR_FORMAT_HANDLE;
     }
 
-    /*存储并打印*/
-    strcpy(&cameraData.shape,str);
-	Display_Logged(LOG_RANK_OK,"shape:%s\n", str);
-
-    /*2.裁剪x坐标偏差相关字符串*/
-    str = strtok(NULL, ",");
-    /*判断是否为错误的数据接收格式*/
-    if( str == NULL )
+    /*判断形状*/
+    if( strcmp(str,"R") == 0 )              //鉴定为正方型
     {
-        goto ERR_HANDLE;
+        cameraData.shape = shapeSquare;
+        cameraData.cmd = justCarry;
+        cameraValidData = true;
+        Display_Logged(LOG_RANK_OK,"Cam:Is square\n");
+        return 0;
     }
-
-    /*存储并打印*/
-    cameraData.x_err = atoi(str);
-    Display_Logged(LOG_RANK_OK,"x_err:%d\n", cameraData.x_err);
-
-	/*3.裁剪y坐标偏差相关字符串*/
-    str = strtok(NULL, ",");
-    /*判断是否为错误的数据接收格式*/
-    if( str == NULL )
+    else if( strcmp(str,"T") == 0 )         //鉴定为正三角形
     {
-        goto ERR_HANDLE;
+        cameraData.shape = shapeTriangle;
+        cameraData.cmd = justCarry;
+        cameraValidData = true;
+        Display_Logged(LOG_RANK_OK,"Cam:Is triangle\n");
+        return 0;
+    }
+    else if( strcmp(str,"C") == 0 )         //鉴定为圆形
+    {
+        cameraData.shape = shapeCircle;
+        cameraData.cmd = justCarry;
+        cameraValidData = true;
+        Display_Logged(LOG_RANK_OK,"Cam:Is circle\n");
+        return 0;
+    }
+    else if( strcmp(str,"RC") == 0 )         //鉴定为偏差方型
+    {
+        cameraData.shape = shapeSquare;
+        cameraData.cmd = needAdjust;
+        Display_Logged(LOG_RANK_OK,"Cam:Near square\n");
+    }
+    else if( strcmp(str,"TC") == 0 )         //鉴定为偏差三角型
+    {
+        cameraData.shape = shapeTriangle;
+        cameraData.cmd = needAdjust;
+        Display_Logged(LOG_RANK_OK,"Cam:Near triangle\n");
+    }
+    else
+    {
+        goto ERR_DATATYPE_HANDLE;
     }
 
-    /*存储并打印*/
-    cameraData.y_err = atoi(str);
-    Display_Logged(LOG_RANK_OK,"y_err:%d\n", cameraData.y_err);
+    // /*1.裁剪形状相关字符串*/
+	// char * str = strtok(tmp,",");
+    // /*判断是否为错误的数据接收格式*/
+    // if( str == NULL )
+    // {
+    //     goto ERR_FORMAT_HANDLE;
+    // }
 
+    // /*存储并打印*/
+    // strcpy(&cameraData.shape,str);
+	// Display_Logged(LOG_RANK_OK,"shape:%s\n", str);
+
+    // /*2.裁剪x坐标偏差相关字符串*/
+    // str = strtok(NULL, ",");
+    // /*判断是否为错误的数据接收格式*/
+    // if( str == NULL )
+    // {
+    //     goto ERR_FORMAT_HANDLE;
+    // }
+
+    // /*存储并打印*/
+    // cameraData.x_err = atoi(str);
+    // Display_Logged(LOG_RANK_OK,"x_err:%d\n", cameraData.x_err);
+
+	// /*3.裁剪y坐标偏差相关字符串*/
+    // str = strtok(NULL, ",");
+    // /*判断是否为错误的数据接收格式*/
+    // if( str == NULL )
+    // {
+    //     goto ERR_FORMAT_HANDLE;
+    // }
+
+    /*存储并打印*/
+    //cameraData.y_err = atoi(str);
+    //Display_Logged(LOG_RANK_OK,"y_err:%d\n", cameraData.y_err);
+
+    /*通知task进程对数据进行处理*/
+    cameraValidData = true;
     return 0;
 
-ERR_HANDLE:
-        Display_Logged(LOG_RANK_ERROR,"Cam:Error data type!\n");
+ERR_FORMAT_HANDLE:
+        Display_Logged(LOG_RANK_ERROR,"Cam:Error data format!\n");      //错误的数据格式
         return -1;
+
+ERR_DATATYPE_HANDLE:
+        Display_Logged(LOG_RANK_ERROR,"Cam:Error data content!\n");     //错误的数据内容
+        return -2;
+
 }
 
 /**
  * @brief:  检查摄像头串口线上是否已有数据接收到且总线空闲
- * @param:  None
- * @retval: true:有数据接受完成
- *          false:未有数据接收完成
 */
-bool Camera_ttyS_BusIDLE(void)
+void Camera_ttyS_CheckBusIDLE(void)
 {
     /*检查数据是否接收完成*/
     if(cameraSerialDataFrame.FrameBit.FrameFinishFlag)
@@ -190,7 +239,7 @@ bool Camera_ttyS_BusIDLE(void)
         else
         {
             /*告知摄像头停止图像识别*/
-            Camera_stopSample();
+            //Camera_stopSample();
             /*处理数据*/
             Camera_dataHandle();
         }
@@ -198,12 +247,6 @@ bool Camera_ttyS_BusIDLE(void)
         /*清空数据接收区*/
         cameraSerialDataFrame.FrameBit.FrameFinishFlag = 0;
         cameraSerialDataFrame.FrameBit.FrameCNT = 0;
-
-        return true;
-    }
-    else
-    {
-        return false;
     }
 }
 

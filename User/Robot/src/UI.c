@@ -5,21 +5,23 @@
 UI_page homePage,debugPage,infoPage,memberPage,
 
         debugPage_ClampJaw,debugPage_Bigarm,debugPage_Smallarm,
-        debugPage_UpDown,debugPage_Rotation,debugPage_Conveyer;
+        debugPage_UpDown,debugPage_Rotation,debugPage_Conveyer,
+        debugPage_Turnplate;
 
 UI_NAME UI_routinue = UI_info;              //记录当前所在页面，默认系统启动后处于信息界面
 UI_NAME UI_Pre_routinue = UI_homepage;      //记录之前所在页面
 
 const char * homePage_item[] = {"Debug Mode","Info","Members","Reboot","\0"};
 const char * debugPage_item[] = {"Clamp jaw","Big arm","Small arm","Up/down","Rotation joint",
-                                "Conveyer","Start task","Stop task","Reset","\0"};
+                                "Conveyer","Turn plate","Start task","Stop task","Reset","\0"};
 
 const char * debugPage_ClampJaw_item[] = {"Catch","Grasped","Release","\0"};
-const char * debugPage_Bigarm_item[] = {"Reset","Move angle","Free mode","\0"};
-const char * debugPage_Smallarm_item[] = {"Reset","Move angle","Free mode","\0"};
-const char * debugPage_UpDown_item[] = {"Reset","Move distance","Free mode","\0"};
-const char * debugPage_Rotation_item[] = {"Reset","Move angle","Free mode","\0"};
+const char * debugPage_Bigarm_item[] = {"Reset","Move angle","\0"};
+const char * debugPage_Smallarm_item[] = {"Reset","Move angle","\0"};
+const char * debugPage_UpDown_item[] = {"Reset","Move distance","\0"};
+const char * debugPage_Rotation_item[] = {"Reset","Move angle","\0"};
 const char * debugPage_Conveyer_item[] = {"Run","Stop","\0"};
+const char * debugPage_Turnplate_item[] = {"0","45","90","135","180","225","270","315","\0"};
 
 /*超页计数器*/
 const uint8_t overPageItem = 8;
@@ -111,6 +113,12 @@ void UI_Setup(void)
     UI_pageInitStruct.select_Symbol = "*";
     UI_pageInitStruct.itemlist = debugPage_Conveyer_item;
     UI_Page_Init(&debugPage_Conveyer,&UI_pageInitStruct);
+
+    /*调试-转盘界面初始化*/
+    UI_pageInitStruct.name = UI_debug_Turnplate;
+    UI_pageInitStruct.select_Symbol = "*";
+    UI_pageInitStruct.itemlist = debugPage_Turnplate_item;
+    UI_Page_Init(&debugPage_Turnplate,&UI_pageInitStruct);
 
     /*调试信息输出界面初始化*/
     UI_pageInitStruct.name = UI_info;
@@ -232,6 +240,13 @@ void UI_ShowPage(UI_page * page)
             break;
         }
 
+        case UI_debug_Turnplate :
+        {
+            UI_DrawListItem(page);
+            break;
+        }
+
+
         case UI_members:
         {
             LCD_Printf("Author List:");
@@ -313,7 +328,7 @@ void UI_ShowMessage_input(const char * msg,robot_Joint * joint)
     }
     else
     {
-        value = joint->length;
+        value = joint->distance;
         value_highest = joint->workspace_max;
         value_lowest = joint->workspace_min;
     }

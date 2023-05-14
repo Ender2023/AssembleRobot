@@ -1,9 +1,13 @@
 #include <string.h>
 #include "AssembleRobot.h"
+#include "turnplate.h"
 #include "relay.h"
 #include "Key.h"
 #include "UI.h"
 
+/**
+ * @brief:  按键初始化
+*/
 void Key_Init(void)
 {
     Display_Logged(LOG_RANK_INFO,"Init Keys...\n");
@@ -13,6 +17,17 @@ void Key_Init(void)
     Keys_forbidden(&KEY3);
     Keys_forbidden(&KEY4);
     Display_Logged(LOG_RANK_OK,"Keys init done!\n");
+}
+
+/**
+ * @brief:  按键状态更新
+*/
+void Keys_StatusUpdate(void)
+{
+    Update_Keys_State(&KEY1);
+    Update_Keys_State(&KEY2);
+    Update_Keys_State(&KEY3);
+    Update_Keys_State(&KEY4);
 }
 
 /**
@@ -95,7 +110,7 @@ void Keys_LPressedEventHandler(Key_Class * KEY)
                     if( debugPage.select < debugPage.itemCNT - 1 ) {debugPage.select ++;}
                     UI_ShowPage(&debugPage);
                 }
-            }     
+            }
 
             if( strcmp(KEY->name,"KEY3") == 0 )
             {
@@ -167,6 +182,34 @@ void Keys_LPressedEventHandler(Key_Class * KEY)
 
         case UI_debug_Conveyer:
         {
+            if( strcmp(KEY->name,"KEY3") == 0 )
+            {
+                UI_ShowPage(&debugPage);
+            }
+            break;
+        }
+
+        case UI_debug_Turnplate:
+        {
+            static uint32_t delay_cnt = 0;
+
+            if( strcmp(KEY->name,"KEY1") == 0 )
+            {
+                if(delay_cnt % 80 == 0)
+                {
+                    if( debugPage_Turnplate.select > 0 ) {debugPage_Turnplate.select --;}
+                    UI_ShowPage(&debugPage_Turnplate);
+                }
+            }
+            else if( strcmp(KEY->name,"KEY2") == 0 )
+            {
+                if(delay_cnt % 80 == 0)
+                {
+                    if( debugPage_Turnplate.select < debugPage_Turnplate.itemCNT - 1 ) {debugPage_Turnplate.select ++;}
+                    UI_ShowPage(&debugPage_Turnplate);
+                }
+            }
+
             if( strcmp(KEY->name,"KEY3") == 0 )
             {
                 UI_ShowPage(&debugPage);
@@ -325,8 +368,33 @@ void Keys_LLPressedEventHandler(Key_Class * KEY)
                     if( debugPage.select < debugPage.itemCNT - 1 ) {debugPage.select ++;}
                     UI_ShowPage(&debugPage);
                 }
-            }            
+            }           
                 
+            break;
+        }
+
+        case UI_debug_Turnplate:
+        {
+            static uint32_t delay_cnt = 0;
+
+            if( strcmp(KEY->name,"KEY1") == 0 )
+            {
+                if(delay_cnt % 20 == 0)
+                {
+                    if( debugPage_Turnplate.select > 0 ) {debugPage_Turnplate.select --;}
+                    UI_ShowPage(&debugPage_Turnplate);
+                }
+            }
+            else if( strcmp(KEY->name,"KEY2") == 0 )
+            {
+                if(delay_cnt % 20 == 0)
+                {
+                    if( debugPage_Turnplate.select < debugPage_Turnplate.itemCNT - 1 ) {debugPage_Turnplate.select ++;}
+                    UI_ShowPage(&debugPage_Turnplate);
+                }
+            }           
+                
+            break;
         }
 
         case UI_info:
@@ -370,8 +438,9 @@ void Keys_LLPressedEventHandler(Key_Class * KEY)
                     }
                 }
             }
-        }
 
+            break;
+        }
     }
 }
 
@@ -437,11 +506,7 @@ void Keys_ReleasedEventHandler(Key_Class * KEY)
                     case 3: {UI_ShowPage(&debugPage_UpDown);break;}
                     case 4: {UI_ShowPage(&debugPage_Rotation);break;}
                     case 5: {UI_ShowPage(&debugPage_Conveyer);break;}
-                    case 6:
-                    {
-
-                        break;
-                    }
+                    case 6: {UI_ShowPage(&debugPage_Turnplate);break;}
                     case 7:
                     {
 
@@ -449,10 +514,15 @@ void Keys_ReleasedEventHandler(Key_Class * KEY)
                     }
                     case 8:
                     {
+
+                        break;
+                    }
+                    case 9:
+                    {
                         roboJoint_Absolute_AngleExecute(&bigARM,0,5,200);
                         roboJoint_Absolute_AngleExecute(&smallARM,0,5,200);
                         roboJoint_Absolute_AngleExecute(&rotationJoint,0,5,200);
-                        roboJoint_Absolute_LineExecute(&upDownJoint,0,5,200);
+                        roboJoint_Absolute_LineExecute(&upDownJoint,75,10,200);
                         UI_ShowMessage_done("All Reset");
                         break;
                     }
@@ -582,7 +652,7 @@ void Keys_ReleasedEventHandler(Key_Class * KEY)
                {
                     case 0: 
                     {
-                        roboJoint_Absolute_LineExecute(&upDownJoint,0,5,200);
+                        roboJoint_Absolute_LineExecute(&upDownJoint,75,10,200);
                         UI_ShowMessage_done("Up/Down joint reset");
                         break;
                     }
@@ -663,6 +733,76 @@ void Keys_ReleasedEventHandler(Key_Class * KEY)
             break;
         }
 
+        case UI_debug_Turnplate :
+        {
+            if( strcmp(KEY->name,"KEY1") == 0 )
+            {
+                if( debugPage_Turnplate.select > 0 ) {debugPage_Turnplate.select --;}
+                UI_ShowPage(&debugPage_Turnplate);
+            }
+            else if( strcmp(KEY->name,"KEY2") == 0 )
+            {
+                if( debugPage_Turnplate.select < debugPage_Turnplate.itemCNT - 1 ) {debugPage_Turnplate.select ++;}
+                UI_ShowPage(&debugPage_Turnplate);
+            }
+            else if( strcmp(KEY->name,"KEY4") == 0 )
+            {
+               switch(debugPage_Turnplate.select)
+               {
+                    case 0: 
+                    {
+                        Turnplate_toAngle(0);
+                        UI_ShowMessage_done("Turnplate goto 0");
+                        break;
+                    }
+                    case 1: 
+                    {
+                        Turnplate_toAngle(45);
+                        UI_ShowMessage_done("Turnplate goto 45");
+                        break;
+                    }
+                    case 2: 
+                    {
+                        Turnplate_toAngle(90);
+                        UI_ShowMessage_done("Turnplate goto 90");
+                        break;
+                    }
+                    case 3: 
+                    {
+                        Turnplate_toAngle(135);
+                        UI_ShowMessage_done("Turnplate goto 135");
+                        break;
+                    }
+                    case 4: 
+                    {
+                        Turnplate_toAngle(180);
+                        UI_ShowMessage_done("Turnplate goto 180");
+                        break;
+                    }
+                    case 5: 
+                    {
+                        Turnplate_toAngle(225);
+                        UI_ShowMessage_done("Turnplate goto 225");
+                        break;
+                    }
+                    case 6: 
+                    {
+                        Turnplate_toAngle(270);
+                        UI_ShowMessage_done("Turnplate goto 270");
+                        break;
+                    }
+                    case 7: 
+                    {
+                        Turnplate_toAngle(315);
+                        UI_ShowMessage_done("Turnplate goto 315");
+                        break;
+                    }
+               }
+            }
+
+            break;
+        }
+
         case UI_info:
         {
             if( strcmp(KEY->name,"KEY1") == 0 )
@@ -738,6 +878,12 @@ void Keys_ReleasedEventHandler(Key_Class * KEY)
                     UI_ShowPage(&debugPage_Conveyer);
                     break;
                 }
+
+                case UI_debug_Turnplate:
+                {
+                    UI_ShowPage(&debugPage_Turnplate);
+                    break;
+                }
             }
 
             break;
@@ -771,7 +917,7 @@ void Keys_ReleasedEventHandler(Key_Class * KEY)
                 }
                 else
                 {
-                    roboJoint_Absolute_LineExecute(tmp_joint,value,5,200);   
+                    roboJoint_Absolute_LineExecute(tmp_joint,value,10,200);   
                 }
             }
             

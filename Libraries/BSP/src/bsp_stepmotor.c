@@ -271,7 +271,8 @@ void StepMotor_Init(stepMotorClass * motor,stepMotorInitTypeDef * stepMotorParam
             USART_Init(motor->Private.ttySx ,&USART_InitStruct);
 
             /*´®¿ÚÖÐ¶ÏÅäÖÃ*/
-            USART_ITConfig(motor->Private.ttySx,USART_IT_RXNE,ENABLE);
+            //USART_ITConfig(motor->Private.ttySx,USART_IT_RXNE,ENABLE);
+            USART_ITConfig(motor->Private.ttySx,USART_IT_IDLE,ENABLE);
 
             NVIC_InitStruct.NVIC_IRQChannel = motor->Private.ttyS_IRQ;
             NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;

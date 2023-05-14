@@ -35,8 +35,11 @@
 #define	CLAMP_JAW_SetPWM(x)         TIM4->CCR1 = ( ( (uint16_t) ( SCLAMP_JAW_K * x + CLAMP_JAW_B ) ) - 1 )
 
 #define CLAMP_JAW_GRASPED()         CLAMP_JAW_SetPWM(100)
-#define CLAMP_JAW_CATCH()           CLAMP_JAW_SetPWM(60)
+#define CLAMP_JAW_CATCH()           CLAMP_JAW_SetPWM(70)
 #define CLAMP_JAW_RELEASE()         CLAMP_JAW_SetPWM(0)
+
+#define STOPSWITCH_PORT             GPIOG
+#define STOPSWITCH_PIN              GPIO_Pin_5
 
 /*机械手运动方式*/
 typedef enum{rotation = 0,line}roboARM_Movetype;
@@ -58,19 +61,30 @@ typedef struct
 }robot_Joint;
 
 extern robot_Joint bigARM,smallARM,rotationJoint,upDownJoint;
-extern bool robot_InitFlag;
+extern bool robot_HeightInit;
 
+/*初始化*/
 void Robot_Init(void);
 void roboJoint_MotorBinding(robot_Joint * roboJoint,stepMotorClass * motor,float gear,roboARM_Movetype moveType);
+
+/*运动*/
 int roboJoint_Relative_AngleExecute(robot_Joint * roboJoint,float angle,stepMotorDir dir,float speed,uint8_t acceleratre);
 int roboJoint_Relative_LineExecute(robot_Joint * roboJoint,float distance,stepMotorDir dir,float speed,uint8_t acceleratre);
 int roboJoint_Absolute_AngleExecute(robot_Joint * roboJoint,float angle,float speed,uint8_t acceleratre);
 int roboJoint_Absolute_LineExecute(robot_Joint * roboJoint,float distance,float speed,uint8_t acceleratre);
 int robo_InverseMotion(float x,float y,float z,float speed,uint8_t acceleratre);
+
+/*夹抓*/
 void Robot_clampJaw_Catch(bool state);
 void Robot_clampJaw_Graspe(bool state);
 void Robot_clampJaw_Release(bool state);
 void Robot_ClampJawCmd(FunctionalState NewState);
+
+/*物块操作*/
+void Robot_CatchCircle(void);
+void Robot_CtachRectangle(void);
+void Robot_CatchTriangle(void);
+
 
 
 #endif

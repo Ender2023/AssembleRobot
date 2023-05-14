@@ -13,6 +13,9 @@ uint16_t stepMotorTaskFinptr = 0;               //释放名单计数器
 
 USART_DataFrameType stepMotorSerialDataFrame;   //步进电机串口数据帧格式
 
+uint8_t receive_time = 0;                       //记录接受次数
+bool motor_execute_done = false;                //电机执行完毕标志位
+
 /**
  * @brief:  步进电机链表迭代回调函数
  * @param:  motor:节点中包含的电机对象
@@ -89,14 +92,34 @@ void STEP_MOTOR_TTYSX_BUS_IRQHALDLER(void)
     {
         if(stepMotorSerialDataFrame.FrameBit.FrameCNT < SERIAL_MAXDATA_SIZE)
         stepMotorSerialDataFrame.RX_BUF[stepMotorSerialDataFrame.FrameBit.FrameCNT ++] = USART_ReceiveData(STEP_MOTOR_TTYSX_BUS);
+        
         /*通过对USART_DR的读操作可以将USART_IT_RXNE清0*/
     }
     if(USART_GetITStatus(STEP_MOTOR_TTYSX_BUS,USART_IT_IDLE) == SET )
     {
         stepMotorSerialDataFrame.FrameBit.FrameFinishFlag = 1;		//代表总线进入空闲状态，数据接收完毕
-
         USART_ReceiveData(STEP_MOTOR_TTYSX_BUS);				    //由软件序列清除中断标志位(先读USART_SR，然后读USART_DR)
-        SYS_DEBUG("%s\n",stepMotorSerialDataFrame.RX_BUF);
+        
+        /*如果系统初始化完毕,才会对各关节回传数据进行计数*/
+        if(SYSTEM_INIT_DONE)
+        {
+            if( receive_time == 1 )
+            {
+                motor_execute_done = true;
+                receive_time = 0;
+            }
+            else
+            {
+                receive_time ++;
+            }
+        }
+
+        //Display_Logged(LOG_RANK_INFO,"%s\n",stepMotorSerialDataFrame.RX_BUF[0]);
+        stepMotorSerialDataFrame.FrameBit.FrameFinishFlag = 0;
+        stepMotorSerialDataFrame.FrameBit.FrameCNT = 0;
+
+
+//        SYS_DEBUG("%s\n",stepMotorSerialDataFrame.RX_BUF);
     }
 }
 
