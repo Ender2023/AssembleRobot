@@ -66,22 +66,20 @@ static void SystemTimer_Init(void)
 */
 static void OS_TaskInit(void)
 {
-	/*任务0*/
+	/*任务0:定期查看摄像头串口总线是否有数据写入*/
 	taskHandle[0].task = Camera_ttyS_CheckBusIDLE;
 	taskHandle[0].task_delay = OS_TIME_PIECE_CAMERA;
 	taskHandle[0].task_delayNow = taskHandle[0].task_delay;
 	
-	/*任务1*/
+	/*任务1:扫描按键*/
 	taskHandle[1].task = Keys_StatusUpdate;
 	taskHandle[1].task_delay = OS_TIME_PIECE_KEY;
 	taskHandle[1].task_delayNow = taskHandle[1].task_delay;
 
-	/*任务2*/
+	/*任务2:执行机器手相关任务*/
 	taskHandle[2].task = Robot_TaskHandler;
 	taskHandle[2].task_delay = OS_TIME_PIECE_ROBOT_TASK;
 	taskHandle[2].task_delayNow = taskHandle[2].task_delay;
-
-
 }
 
 /**
@@ -246,12 +244,12 @@ void SystemTimer_Cmd(FunctionalState NewState)
 	if(NewState)
 	{
 		SYSTEM_TIMER->CR1 |= TIM_CR1_CEN;
-		Display_Logged(LOG_RANK_WARNNING,"SYS_TIM start!\n");
+		//Display_Logged(LOG_RANK_WARNNING,"SYS_TIM start!\n");
 	}
 	else
 	{
 		SYSTEM_TIMER->CR1 &= (uint16_t)(~((uint16_t)TIM_CR1_CEN));
-		Display_Logged(LOG_RANK_WARNNING,"SYS_TIM stop!\n");
+		//Display_Logged(LOG_RANK_WARNNING,"SYS_TIM stop!\n");
 	}
 }
 

@@ -87,6 +87,7 @@ void Camera_stopSample(void)
 void Camera_startSample(void)
 {
     serial_Printf(TTYS_CAMERA,"O");
+    Display_Logged(LOG_RANK_INFO,"Robot:O\n");
 }
 
 /**

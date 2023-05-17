@@ -5,6 +5,7 @@
 #include "relay.h"
 #include "display.h"
 #include "Laser.h"
+#include "bsp_delay.h"
 
 enum_TaskStage taskPreStage = stage_begin;      //前一阶段
 enum_TaskStage taskStage = stage_begin;         //当前阶段
@@ -40,14 +41,14 @@ void Robot_TaskBegin(void)
 }
 
 /**
- * @brief:  任务阶段1，吸合继电器，启动传送带,同时大臂走到0°，小臂走至-152°等待识别
+ * @brief:  任务阶段1，吸合继电器，启动传送带,同时大臂走到0°，小臂走至-148°等待识别
 */
 void Robot_stage1(void)
 {
-    if(taskPreStage == stage_begin)
-    {
-        roboJoint_Absolute_AngleExecute(&smallARM,-152,5,200);  //小臂走到-152°
-    }
+    //if(taskPreStage == stage_begin)
+    //{
+        roboJoint_Absolute_AngleExecute(&smallARM,-149,5,200);  //小臂走到-148°
+    //}
     Relay_actuation();                                          //吸合继电器，启动传送带
 
     /*执行阶段2*/
@@ -75,10 +76,11 @@ void Robot_stage2(void)
     }
     else
     {
+        /*检测到物块后,释放夹抓,并下降到指定高度,准备识别*/
         if(!flag)
         {
             Robot_clampJaw_Release(ENABLE);
-            retval = roboJoint_Absolute_LineExecute(&upDownJoint,200,20,200);
+            retval = roboJoint_Absolute_LineExecute(&upDownJoint,230,20,200);
             receive_time = 0;
             motor_execute_done = false;
             flag = true;
@@ -87,7 +89,8 @@ void Robot_stage2(void)
         /*等待上下关节就位*/
         if(motor_execute_done || retval == 1)
         {
-            Camera_startSample();       //向摄像头传输采样命令
+            delay_s(2);                                 //适当延时，避免过早识别方形误识别为圆
+            Camera_startSample();                       //向摄像头传输采样命令
 
             taskPreStage = stage2;
             taskStage = stage3;
@@ -137,9 +140,21 @@ void Robot_stage3(void)
                 taskPreStage = stage3;
                 taskStage = stage5;
                 Display_Logged(LOG_RANK_OK,"Robot:In stage5\n");
-
             }
         }
+        /*否则还需要旋转夹抓进行校正*/
+        else
+        {
+            Display_Logged(LOG_RANK_OK,"Robot:In stage4\n");
+            taskPreStage = stage3;
+            taskStage = stage4;
+        }
+    }
+    else
+    {
+        Camera_startSample();       //再次向摄像头传输采样命令，防止读到的数据为空
+        Display_Logged(LOG_RANK_OK,"Robot:In sleep\n");
+        Robot_Sleep(2);             //睡眠100ms
     }
 }
 
@@ -148,10 +163,33 @@ void Robot_stage3(void)
 */
 void Robot_stage4(void)
 {
+    /*单次执行标志位*/
+    static bool flag;
 
+    if( taskPreStage == stage3 ){flag = false;}
 
+    /*每次调整5°*/
+    if( !flag )
+    {
+        roboJoint_Relative_AngleExecute(&rotationJoint,5,dir_pos,10,200);
+        flag = true;
+        Display_Logged(LOG_RANK_OK,"Robot:In sleep\n");
+        Robot_Sleep(20);
+        return ;
+    }
+    
+    /*如果是从休眠状态中醒来*/
+    if(taskPreStage == stage_sleep)
+    {
+        cameraValidData = false;
+        Camera_startSample();                               //向摄像头传输采样命令
+        Display_Logged(LOG_RANK_OK,"Robot:Back stage3\n");
+        taskPreStage = stage4;
+        taskStage = stage3;                                 //回到阶段3
+    }
+
+    taskPreStage = stage4;
 }
-
 
 /**
  * @brief:  任务阶段5，转盘转至指定角度
@@ -190,7 +228,7 @@ void Robot_stage6(void)
     {
         if(!flag2)
         {
-            roboJoint_Absolute_AngleExecute(&bigARM,+171.5,5,150);           //大臂走至+171.5
+            roboJoint_Absolute_AngleExecute(&bigARM,+182,5,150);           //大臂走至+182
             receive_time = 0;
             motor_execute_done = false;
             flag2 = true;
@@ -212,27 +250,28 @@ void Robot_stage7(void)
 {
     static bool flag;                                                   //单次执行标志位
 
-    if( taskPreStage == stage5 ){flag = false;}
+    if( taskPreStage == stage6 ){flag = false;}
     taskPreStage = stage7;
 
-    /*上升*/
+    /*调整小臂至物块可嵌入槽内*/
     if(!flag)
     {
-        roboJoint_Absolute_AngleExecute(&smallARM,-149,5,200);          //小臂走到-149°
+        roboJoint_Absolute_AngleExecute(&smallARM,-180,5,200);          //小臂走到-180
         receive_time = 0;
         motor_execute_done = false;
         flag = true;
     }
 
+    /*等待调整完毕*/
     if(motor_execute_done)
     {
+        roboJoint_Absolute_AngleExecute(&rotationJoint,0,10,200);
+        delay_s(1);
         taskPreStage = stage7;
         taskStage = stage8;
         Display_Logged(LOG_RANK_OK,"Robot:In stage8\n");
     }
 }
-
-
 
 /**
  * @brief:  任务阶段8，下降，并将物块放置到对应槽中
@@ -265,7 +304,7 @@ void Robot_stage8(void)
 }
 
 /**
- * @brief:  任务阶段8，上升，大臂复位，进入下一个循环
+ * @brief:  任务阶段9，上升，大臂复位，进入下一个循环
 */
 void Robot_stage9(void)
 {
@@ -278,7 +317,7 @@ void Robot_stage9(void)
     /*上升*/
     if(!flag)
     {
-        roboJoint_Absolute_LineExecute(&upDownJoint,200,15,200);        //上升至等待识别高度
+        roboJoint_Absolute_LineExecute(&upDownJoint,230,15,200);        //上升至等待识别高度
         receive_time = 0;
         motor_execute_done = false;
         flag = true;
@@ -289,23 +328,21 @@ void Robot_stage9(void)
     {
         if(!flag2)
         {
-            roboJoint_Absolute_AngleExecute(&bigARM,0,5,150);           //大臂走至20
+            roboJoint_Absolute_AngleExecute(&bigARM,0,5,150);           //大臂走至0
             receive_time = 0;
             motor_execute_done = false;
             flag2 = true;
         }
         
-        if(motor_execute_done)
-        {
-            taskPreStage = stage9;
-            taskStage = stage1;
-            Display_Logged(LOG_RANK_OK,"Robot:In stage1\n");
-        }
+        delay_s(5);
+        taskPreStage = stage9;
+        taskStage = stage1;
+        Display_Logged(LOG_RANK_OK,"Robot:In stage1\n");
     }
 }
 
 /**
- * @brief:  任务结束阶段
+ * @brief:  任务结休眠阶段
 */
 void Robot_TaskEnd(void)
 {

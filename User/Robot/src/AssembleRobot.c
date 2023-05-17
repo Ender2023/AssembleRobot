@@ -143,7 +143,7 @@ static void Robot_clampJawInit(void)
     TIM_OCInitStruct.TIM_OCMode = TIM_OCMode_PWM1;
     TIM_OCInitStruct.TIM_OCPolarity = TIM_OCPolarity_High;
     TIM_OCInitStruct.TIM_OutputState = TIM_OutputState_Enable;
-    TIM_OCInitStruct.TIM_Pulse = ( 1000 - 1 );
+    TIM_OCInitStruct.TIM_Pulse = (  1000 - 1 );
     TIM_OC1Init(CLAMP_JAW_TIMER,&TIM_OCInitStruct);
 
     Display_Logged(LOG_RANK_OK,"Clamp jaw init done!\n");
@@ -281,7 +281,7 @@ int roboJoint_Absolute_AngleExecute(robot_Joint * roboJoint,float angle,float sp
         float angle_solution1,angle_solution2,angle_err;
 
         /*限制角度范围在-180° ~ +180°*/
-        angle_mapping(angle);
+        //angle_mapping(angle);
 
         /*结算目标角度与当前角度的差值,即要走过的角度*/
         angle_solution1 = angle - roboJoint->angle;
@@ -322,21 +322,21 @@ int roboJoint_Absolute_AngleExecute(robot_Joint * roboJoint,float angle,float sp
         pulseCNT = ( angle_err / 360.0f ) * ( 360.0f / roboJoint->motor->Public.param.DEG ) * 
                    (roboJoint->motor->Public.param.division) * ( roboJoint->gear );
 
-//	    SystemTimer_Cmd(DISABLE);//避免系统调度引发指令发送中断
+	    SystemTimer_Cmd(DISABLE);//避免系统调度引发指令发送中断
 
         if( stepMotor_PulseExecute(roboJoint->motor,dir,speed,acceleratre,pulseCNT) == 0)
         {
             /*更新记录的角度值*/
             roboJoint->angle += angle_err;
-            angle_mapping(roboJoint->angle);
+            //angle_mapping(roboJoint->angle);
             Display_Logged(LOG_RANK_WARNNING,"%s to %.0f\n",roboJoint->name,roboJoint->angle);
 
-//           SystemTimer_Cmd(ENABLE);
+           SystemTimer_Cmd(ENABLE);
 
             return 0;
         }
         
-//        SystemTimer_Cmd(ENABLE);
+        SystemTimer_Cmd(ENABLE);
         return -1;
     }
     else
@@ -395,19 +395,19 @@ int roboJoint_Absolute_LineExecute(robot_Joint * roboJoint,float distance,float 
         pulseCNT = ( distance / ROBOARM_HELICAL_PITCH ) * ( 360.0f / roboJoint->motor->Public.param.DEG ) 
                     * (roboJoint->motor->Public.param.division) * ( roboJoint->gear );
 
-//	    SystemTimer_Cmd(DISABLE);//避免系统调度引发指令发送中断
+	    SystemTimer_Cmd(DISABLE);//避免系统调度引发指令发送中断
 
         if( stepMotor_PulseExecute(roboJoint->motor,dir,speed,acceleratre,pulseCNT) == 0)
         {
             /*更新记录的高度值*/
             roboJoint->distance += distance;
             Display_Logged(LOG_RANK_WARNNING,"%s to %.0f\n",roboJoint->name,roboJoint->distance);
-//            SystemTimer_Cmd(ENABLE);
+            SystemTimer_Cmd(ENABLE);
 
             return 0;
         }
 
-//        SystemTimer_Cmd(ENABLE);
+        SystemTimer_Cmd(ENABLE);
 
         return -1;
     }
@@ -591,7 +591,8 @@ void EXTI9_5_IRQHandler(void)
         if( robot_HeightInit == false )
         {
 	    	roboJoint_UrgentSTOP(&upDownJoint);                                     //令高度关节紧急停止
-            upDownJoint.distance = upDownJoint.workspace_max;	
+            upDownJoint.distance = upDownJoint.workspace_max;
+            delay_ms(100);                                                          //延时一段时间，避免总线冲突	
 	        roboJoint_Relative_LineExecute(&upDownJoint,2,ROBOARM_DOWN_DIR,5,200);  //下降一部分，避免一直处于最高位
             Display_Logged(LOG_RANK_OK,"Height calibrate done!\n");
             robot_HeightInit = true;
