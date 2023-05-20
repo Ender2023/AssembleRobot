@@ -36,6 +36,7 @@
 
 #define CLAMP_JAW_GRASPED()         CLAMP_JAW_SetPWM(100)
 #define CLAMP_JAW_CATCH()           CLAMP_JAW_SetPWM(70)
+#define CLAMP_JAW_LOOSE()           CLAMP_JAW_SetPWM(30)
 #define CLAMP_JAW_RELEASE()         CLAMP_JAW_SetPWM(0)
 
 #define STOPSWITCH_PORT             GPIOG
@@ -79,6 +80,7 @@ void Robot_clampJaw_Catch(bool state);
 void Robot_clampJaw_Graspe(bool state);
 void Robot_clampJaw_Release(bool state);
 void Robot_ClampJawCmd(FunctionalState NewState);
+void Robot_clampJaw_Loose(void);
 
 /*物块操作*/
 void Robot_CatchCircle(void);

@@ -22,9 +22,10 @@ typedef struct
 typedef struct
 {
     stepMotorClass *        motor;          //转盘占用的电机对象
-    TurnplateContentType    contentPool[8]; //容器池 
+    TurnplateContentType    contentPool[8]; //容器池
     float                   gear;           //转盘齿数比
     float                   angle;          //转盘当前角度值
+    uint16_t                 now_ctr;        //当前位置
 
 }TurnplateType;
 

@@ -5,6 +5,11 @@
 static stepMotorClass motor_turnPlate;
 TurnplateType turnplate;
 
+//转盘是否使用单方向行程
+#define TURNPLATE_USE_ONE_DIR       1
+#define TURNPLATE_UNUSE_ONE_DIR     0
+#define TURNPLATE_ONE_DIR           TURNPLATE_USE_ONE_DIR
+
 /**
  * @brief:  转盘步进电机引脚配置初始化
 */
@@ -40,18 +45,18 @@ void Turnplate_Init(void)
     Display_Logged(LOG_RANK_INFO,"Init turnplate...\n");
 
     /*初始化容器池*/
-
+#if TURNPLATE_ONE_DIR == TURNPLATE_USE_ONE_DIR
     /*容器1*/
     turnplate.contentPool[0].angle = 0.0f;
-    turnplate.contentPool[0].shape = shapeSquare;
+    turnplate.contentPool[0].shape = shapeCircle;
     turnplate.contentPool[0].isEmpty = true;
     /*容器2*/
     turnplate.contentPool[1].angle = 45.0f;
-    turnplate.contentPool[1].shape = shapeTriangle;
+    turnplate.contentPool[1].shape = shapeSquare;
     turnplate.contentPool[1].isEmpty = true;
     /*容器3*/
     turnplate.contentPool[2].angle = 90.0f;
-    turnplate.contentPool[2].shape = shapeCircle;
+    turnplate.contentPool[2].shape = shapeTriangle;
     turnplate.contentPool[2].isEmpty = true;
     /*容器4*/
     turnplate.contentPool[3].angle = 135.0f;
@@ -59,7 +64,42 @@ void Turnplate_Init(void)
     turnplate.contentPool[3].isEmpty = true;
     /*容器5*/
     turnplate.contentPool[4].angle = 180.0f;
-    turnplate.contentPool[4].shape = shapeTriangle;
+    turnplate.contentPool[4].shape = shapeCircle;
+    turnplate.contentPool[4].isEmpty = true;
+    /*容器6*/
+    turnplate.contentPool[5].angle = 225.0f;
+    turnplate.contentPool[5].shape = shapeTriangle;
+    turnplate.contentPool[5].isEmpty = true;
+    /*容器7*/
+    turnplate.contentPool[6].angle = 270.0f;
+    turnplate.contentPool[6].shape = shapeSquare;
+    turnplate.contentPool[6].isEmpty = true;
+    /*容器8*/
+    turnplate.contentPool[7].angle = 315.0f;
+    turnplate.contentPool[7].shape = shapeTriangle;
+    turnplate.contentPool[7].isEmpty = true;
+
+#elif  TURNPLATE_ONE_DIR == TURNPLATE_UNUSE_ONE_DIR
+
+    /*容器1*/
+    turnplate.contentPool[0].angle = 0.0f;
+    turnplate.contentPool[0].shape = shapeCircle;
+    turnplate.contentPool[0].isEmpty = true;
+    /*容器2*/
+    turnplate.contentPool[1].angle = 45.0f;
+    turnplate.contentPool[1].shape = shapeTriangle;
+    turnplate.contentPool[1].isEmpty = true;
+    /*容器3*/
+    turnplate.contentPool[2].angle = 90.0f;
+    turnplate.contentPool[2].shape = shapeSquare;
+    turnplate.contentPool[2].isEmpty = true;
+    /*容器4*/
+    turnplate.contentPool[3].angle = 135.0f;
+    turnplate.contentPool[3].shape = shapeTriangle;
+    turnplate.contentPool[3].isEmpty = true;
+    /*容器5*/
+    turnplate.contentPool[4].angle = 180.0f;
+    turnplate.contentPool[4].shape = shapeCircle;
     turnplate.contentPool[4].isEmpty = true;
     /*容器6*/
     turnplate.contentPool[5].angle = 225.0f;
@@ -67,12 +107,13 @@ void Turnplate_Init(void)
     turnplate.contentPool[5].isEmpty = true;
     /*容器7*/
     turnplate.contentPool[6].angle = 270.0f;
-    turnplate.contentPool[6].shape = shapeCircle;
+    turnplate.contentPool[6].shape = shapeTriangle;
     turnplate.contentPool[6].isEmpty = true;
     /*容器8*/
     turnplate.contentPool[7].angle = 315.0f;
-    turnplate.contentPool[7].shape = shapeTriangle;
+    turnplate.contentPool[7].shape = shapeSquare;
     turnplate.contentPool[7].isEmpty = true;
+#endif
 
     /*默认从0°开始旋转*/
     turnplate.angle = 0.0f;
@@ -114,14 +155,24 @@ void Turnplate_DirChange(stepMotorDir dir)
 */
 void Turnplate_toAngle(float angle)
 {
+#if TURNPLATE_ONE_DIR == TURNPLATE_UNUSE_ONE_DIR
     /*通过可能的解决方案寻找最优解*/
     float angle_solution1,angle_solution2,angle_err;
+#elif TURNPLATE_ONE_DIR == TURNPLATE_USE_ONE_DIR
+    float angle_solution1,angle_err;
+#endif
 
+
+#if TURNPLATE_ONE_DIR == TURNPLATE_UNUSE_ONE_DIR
     /*限制角度范围在-180° ~ +180°*/
     angle_mapping(angle);
+#endif
 
     /*结算目标角度与当前角度的差值,即要走过的角度*/
     angle_solution1 = angle - turnplate.angle;
+
+#if TURNPLATE_ONE_DIR == TURNPLATE_UNUSE_ONE_DIR
+
     if( angle_solution1 > 0 )
     {
         angle_solution2 = angle_solution1 - 360;
@@ -151,6 +202,15 @@ void Turnplate_toAngle(float angle)
         Turnplate_DirChange(dir_pos);
     }
 
+#else
+    if( angle_solution1 < 0 )
+    {
+        angle_solution1 += 360;
+    }
+
+    angle_err = angle_solution1;
+
+#endif
     /*解析角度相对运动所需脉冲*/
     stepMotor_AngleFoward(turnplate.motor,( turnplate.gear * angle_err ));
 
@@ -162,7 +222,10 @@ void Turnplate_toAngle(float angle)
 
     /*更新记录的角度值*/
     turnplate.angle += angle_err;
+    
+#if TURNPLATE_ONE_DIR == TURNPLATE_UNUSE_ONE_DIR
     angle_mapping(turnplate.angle);
+#endif
 }
 
 /**
@@ -173,9 +236,10 @@ void Turnplate_toAngle(float angle)
 */
 int Turnplate_toContent(Contentshape shape)
 {
-    uint8_t ctr;
+    uint8_t ctr = 0;
     float angle;
 
+#if TURNPLATE_ONE_DIR == TURNPLATE_UNUSE_ONE_DIR
     /*查找对应形状的剩余容器所处的位置*/
     for(ctr = 0; ctr < 7; ctr ++)
     {
@@ -188,11 +252,41 @@ int Turnplate_toContent(Contentshape shape)
                 angle = turnplate.contentPool[ctr].angle;       //获取该容器的角度
                 Turnplate_toAngle(angle);                       //调整至相应的容器所在角度位置
                 turnplate.contentPool[ctr].isEmpty = false;     //占用该容器
+                turnplate.now_ctr = ctr;
                 
                 return 0;
             }
         }
     }
+
+#elif TURNPLATE_ONE_DIR == TURNPLATE_USE_ONE_DIR
+
+    uint16_t ptr = turnplate.now_ctr;
+
+    while( ctr < 8 )
+    {
+        /*查找相应形状的容器*/
+        if(turnplate.contentPool[ptr].shape == shape)
+        {
+            /*判断该容器是否已被占用*/
+            if(turnplate.contentPool[ptr].isEmpty == true)
+            {
+                angle = turnplate.contentPool[ptr].angle;       //获取该容器的角度
+                Turnplate_toAngle(angle);                       //调整至相应的容器所在角度位置
+                turnplate.contentPool[ptr].isEmpty = false;     //占用该容器
+                turnplate.now_ctr = ptr;
+                
+                return 0;
+            }
+        } 
+        
+        ptr = ( ptr + 1 ) % 8;
+        ctr++;
+    }
+        
+
+
+#endif
 
     return -1;
 }

@@ -492,6 +492,15 @@ void Robot_clampJaw_Catch(bool state)
 }
 
 /**
+ * @brief:  机械夹抓松开一段区间
+*/
+void Robot_clampJaw_Loose(void)
+{
+    CLAMP_JAW_LOOSE();
+    Display_Logged(LOG_RANK_WARNNING,"Clamp jaw Loose!\n");
+}
+
+/**
  * @brief:  机械夹抓松开
  * @param:  state:      夹紧状态
  *          true:       夹抓松开
